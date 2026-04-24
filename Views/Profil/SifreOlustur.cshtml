@@ -1,0 +1,49 @@
+﻿@{
+    ViewData["Title"] = "Şifre Oluştur";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-shield-lock-fill me-2"></i>Hesap Şifresi Tanımlama</h4>
+                </div>
+                <div class="card-body p-4 p-lg-5">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-google text-danger fs-1"></i>
+                        <p class="text-muted small mt-2">Google hesabınızla bağlantı kurdunuz. Güvenliğiniz için yerel bir oturum şifresi belirleyiniz.</p>
+                    </div>
+
+                    <hr class="opacity-10" />
+
+                    @* İşlem hata bildirimleri *@
+                    @if (TempData["Hata"] != null)
+                    {
+                        <div class="alert alert-danger border-0 shadow-sm small">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i> @TempData["Hata"]
+                        </div>
+                    }
+
+                    <form asp-action="SifreOlustur" method="post">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary small">Yeni Şifre</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3"><i class="bi bi-key text-success"></i></span>
+                                <input name="yeniSifre" type="password" class="form-control border-start-0 rounded-end-3 shadow-none"
+                                       placeholder="Minimum 6 karakter giriniz..." required minlength="6" />
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm rounded-pill fw-bold">
+                                <i class="bi bi-check2-circle me-2"></i> Şifreyi Onayla ve Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-link text-decoration-none text-muted small mt-1">İptal</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

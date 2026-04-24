@@ -1,0 +1,196 @@
+﻿@model DepoFly.Models.Urun
+
+@{
+    ViewData["Title"] = "Ürün Düzenle";
+}
+
+<style>
+    /* Barkod Okuyucu Alanı Tasarımı */
+    #okuyucu {
+        width: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        border: 3px solid #ffc107 !important; /* Düzenleme modu olduğu için sarı çerçeve */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+        #okuyucu video {
+            object-fit: cover !important;
+        }
+
+    .input-group-modern {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid #e9ecef;
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-warning text-dark py-3 rounded-top-4">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i> Ürün Bilgilerini Güncelle</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                @* Gizli Alanlar *@
+                <input type="hidden" asp-for="Id" id="urunId" />
+                <input type="hidden" asp-for="KayitTarihi" />
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="row">
+                    @* Ürün Adı *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="Ad" class="fw-bold mb-2">Ürün Adı</label>
+                        <input asp-for="Ad" class="form-control form-control-lg border-2" placeholder="Örn: iPhone 15" style="border-radius: 10px;" />
+                        <span asp-validation-for="Ad" class="text-danger small"></span>
+                    </div>
+
+                    @* Barkod *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="Barkod" class="fw-bold mb-2">Barkod Numarası</label>
+                        <div class="input-group input-group-modern shadow-sm">
+                            <input asp-for="Barkod" id="barkodInput" class="form-control form-control-lg border-0 bg-white" />
+                            <button class="btn btn-dark fw-bold px-4" type="button" id="kameraAcBtn">
+                                <i class="bi bi-camera-fill me-2"></i>Barkod Okuyucu
+                            </button>
+                        </div>
+                        <div id="okuyucu" style="display: none;" class="mt-3"></div>
+                        <span asp-validation-for="Barkod" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @* Kategori Seçimi *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="KategoriId" class="fw-bold mb-2">Ürün Kategorisi</label>
+                        <select asp-for="KategoriId" asp-items="ViewBag.KategoriListesi" class="form-select form-select-lg border-2" style="border-radius: 10px;">
+                            <option value="">-- Lütfen Kategori Seçiniz --</option>
+                        </select>
+                        <span asp-validation-for="KategoriId" class="text-danger small"></span>
+                    </div>
+
+                    @* Depo Seçimi *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="DepoId" class="fw-bold mb-2">Depo Lokasyonu</label>
+                        <select asp-for="DepoId" asp-items="ViewBag.DepoListesi" class="form-select form-select-lg border-2" style="border-radius: 10px;">
+                            <option value="">-- Lütfen Depo Seçiniz --</option>
+                        </select>
+                        <span asp-validation-for="DepoId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @* Stok Miktarı *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="StokMiktari" class="fw-bold mb-2">Stok Miktarı</label>
+                        <input asp-for="StokMiktari" type="number" class="form-control form-control-lg border-2" style="border-radius: 10px;" />
+                        <span asp-validation-for="StokMiktari" class="text-danger small"></span>
+                    </div>
+
+                    @* Birim Fiyat *@
+                    <div class="col-md-6 mb-4">
+                        <label asp-for="BirimFiyat" class="fw-bold mb-2">Birim Fiyat (₺)</label>
+                        <input asp-for="BirimFiyat" class="form-control form-control-lg border-2" style="border-radius: 10px;" />
+                        <span asp-validation-for="BirimFiyat" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-top pt-4 d-flex justify-content-between align-items-center">
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4 rounded-pill fw-bold">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold rounded-pill shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> Değişiklikleri Kaydet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const btn = document.getElementById('kameraAcBtn');
+        const okuyucuDiv = document.getElementById('okuyucu');
+        const input = document.getElementById('barkodInput');
+        const mevcutUrunId = document.getElementById('urunId').value;
+        let html5QrCode;
+
+        btn.addEventListener('click', () => {
+            if (okuyucuDiv.style.display === 'block') {
+                kameraDurdur();
+                return;
+            }
+
+            okuyucuDiv.style.display = 'block';
+            btn.innerHTML = '<i class="bi bi-camera-reels-fill me-2"></i>Stop';
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("okuyucu");
+            }
+
+            const config = {
+                fps: 20,
+                qrbox: { width: 300, height: 150 },
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ]
+            };
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                config,
+                (okunanBarkod) => {
+                    if (navigator.vibrate) navigator.vibrate(100);
+
+                    fetch(`/Urun/BarkodKontrol?barkod=${okunanBarkod}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.sonuc === "var" && data.id != mevcutUrunId) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'İşlem Engellendi',
+                                    text: `Bu barkod numarası halihazırda "${data.ad}" isimli ürüne tanımlıdır.`,
+                                    background: '#fff9e6'
+                                });
+                            } else {
+                                input.value = okunanBarkod;
+                                kameraDurdur();
+                                Swal.fire({
+                                    toast: true, position: 'top-end', icon: 'success', title: 'Barkod başarıyla güncellendi.', showConfirmButton: false, timer: 1500
+                                });
+                            }
+                        })
+                        .catch(err => console.error("Veri doğrulama hatası:", err));
+                }
+            ).catch(err => {
+                console.error("Kamera erişim hatası:", err);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Erişim Hatası',
+                    text: 'Lütfen kamera kullanım izinlerini kontrol ediniz.'
+                });
+            });
+        });
+
+        function kameraDurdur() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    okuyucuDiv.style.display = 'none';
+                    btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Barkod Okuyucu';
+                }).catch(err => console.error("Kamera durdurulurken hata oluştu:", err));
+            } else {
+                okuyucuDiv.style.display = 'none';
+                btn.innerHTML = '<i class="bi bi-camera-fill me-2"></i>Barkod Okuyucu';
+            }
+        }
+    </script>
+}

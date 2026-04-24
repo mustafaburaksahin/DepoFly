@@ -1,0 +1,129 @@
+﻿@model List<DepoFly.Models.Not>
+@{
+    ViewData["Title"] = "Not Defteri";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 rounded-4" style="background-color: #fff9e6;">
+                <div class="card-header bg-warning text-dark fw-bold py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-sticky-fill me-2"></i> Kişisel Not Defteri</span>
+                    <span class="badge bg-dark px-3 py-2 rounded-pill shadow-sm" id="toplamNotSayisi">@Model.Count Kayıt</span>
+                </div>
+                <div class="card-body p-4">
+                    @* Not Ekleme Alanı *@
+                    <div class="input-group mb-4 shadow-sm">
+                        <input type="text" id="sayfaNotIcerik" class="form-control border-warning" placeholder="Yeni bir not ekleyiniz..." maxlength="500">
+                        <button class="btn btn-warning fw-bold px-4" id="btnSayfaNotEkle">Ekle</button>
+                    </div>
+
+                    @* Not Listesi *@
+                    <div id="notListesi" style="max-height: 500px; overflow-y: auto; padding-right: 5px;">
+                        @foreach (var item in Model)
+                        {
+                            <div class="alert alert-light border-0 shadow-sm mb-3 d-flex justify-content-between align-items-start p-3 rounded-3" id="not-@item.Id">
+                                <div style="flex: 1;">
+                                    <p class="mb-1 fw-semibold text-dark">@item.Icerik</p>
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        <i class="bi bi-clock me-1"></i> @item.Tarih.ToString("dd.MM.yyyy HH:mm")
+                                    </small>
+                                </div>
+                                <button class="btn btn-outline-danger btn-sm border-0 ms-2" onclick="notSil(@item.Id)">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // İstatistik güncelleme ve görsel geri bildirim fonksiyonu
+        function sayiyiGuncelle(artis) {
+            let badge = $('#toplamNotSayisi');
+            let mevcutSayi = parseInt(badge.text());
+            let yeniSayi = mevcutSayi + artis;
+
+            badge.text(yeniSayi + " Kayıt")
+                 .fadeOut(100).fadeIn(100);
+        }
+
+        // Not Ekleme İşlemi
+        $('#btnSayfaNotEkle').click(function () {
+            const icerik = $('#sayfaNotIcerik').val();
+            if (icerik.trim() === "") {
+                Swal.fire({ icon: 'warning', title: 'Eksik Bilgi', text: 'Lütfen not içeriğini boş bırakmayınız.', background: '#fff9e6' });
+                return;
+            }
+
+            $.post('/Profil/NotEkle', { icerik: icerik }, function (res) {
+                const yeniNotHtml = `
+                    <div class="alert alert-light border-0 shadow-sm mb-3 d-flex justify-content-between align-items-start p-3 rounded-3" id="not-${res.id}" style="display:none;">
+                        <div style="flex: 1;">
+                            <p class="mb-1 fw-semibold text-dark">${res.icerik}</p>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="bi bi-clock me-1"></i> ${res.tarih}
+                            </small>
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm border-0 ms-2" onclick="notSil(${res.id})">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>`;
+
+                $('#notListesi').prepend(yeniNotHtml);
+                $(`#not-${res.id}`).fadeIn(500);
+
+                $('#sayfaNotIcerik').val('');
+                sayiyiGuncelle(1);
+
+                Swal.mixin({
+                    toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
+                }).fire({ icon: 'success', title: 'Not başarıyla kaydedildi.' });
+            });
+        });
+
+        $('#sayfaNotIcerik').keypress(function (e) {
+            if (e.which == 13) {
+                $('#btnSayfaNotEkle').click();
+                return false;
+            }
+        });
+
+        // Not Silme İşlemi
+        function notSil(id) {
+            Swal.fire({
+                title: 'Silme Onayı',
+                text: "İlgili notu kalıcı olarak silmek istediğinize emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal',
+                background: '#fff9e6',
+                borderRadius: '15px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Profil/NotSil', { id: id }, function () {
+                        $(`#not-${id}`).fadeOut(400, function() {
+                            $(this).remove();
+                            sayiyiGuncelle(-1);
+
+                            const Toast = Swal.mixin({
+                                toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true
+                            });
+                            Toast.fire({ icon: 'success', title: 'Not başarıyla silindi.' });
+                        });
+                    }).fail(function() {
+                        Swal.fire('Hata', 'Silme işlemi gerçekleştirilemedi.', 'error');
+                    });
+                }
+            });
+        }
+    </script>
+}

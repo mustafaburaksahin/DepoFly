@@ -1,0 +1,321 @@
+﻿@using Microsoft.AspNetCore.Http
+@using DepoFly.Models
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DepoFly Yönetim Paneli</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* AGA: Navbar'ın seni her yerde takip etmesini sağlayan ana ayar */
+        .navbar {
+            position: fixed !important; /* Fixed ile ekrana çiviliyoruz */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1100; /* Kartların ve diğer öğelerin üstünde kalması için */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Navbar fixed olduğu için içeriğin üstte kaybolmaması için gövdeye boşluk veriyoruz */
+        body {
+            padding-top: 75px;
+        }
+
+        /* Sayfa aşağı kaydığında (Scroll) devreye giren profesyonel stil */
+        .navbar.scrolled {
+            padding: 0.3rem 1rem; /* Navbar hafif daralır */
+            backdrop-filter: blur(12px); /* Apple tarzı arka plan bulanıklığı */
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        }
+
+        /* Kırmızı navbar (Sınıf Alanı) için kaydırma efekti */
+        .bg-danger.navbar.scrolled {
+            background-color: rgba(220, 53, 69, 0.97) !important;
+        }
+
+        /* Siyah navbar (Ana Panel) için kaydırma efekti */
+        .bg-dark.navbar.scrolled {
+            background-color: rgba(33, 37, 41, 0.97) !important;
+        }
+
+        /* Barkod okuyucu görüntü optimizasyonu */
+        #layoutOkuyucu video {
+            object-fit: cover !important;
+            border-radius: 8px;
+        }
+
+        /* Navigasyon öğeleri aktif durum tasarımı */
+        .nav-link.active {
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <header>
+        @{
+            var aktifSinifId = Context.Session.GetInt32("AktifSinifId");
+            bool sadeceOkuma = ViewBag.SadeceOkuma ?? true;
+        }
+
+        @if (aktifSinifId.HasValue)
+        {
+            @* ORTAK ÇALIŞMA ALANI NAVİGASYONU - sticky-top EKLENDİ *@
+            <nav class="navbar navbar-expand-lg navbar-dark bg-danger shadow-sm mb-3">
+                <div class="container-fluid px-4">
+                    <div class="navbar-brand fw-bold mb-0" style="cursor: default;">
+                        <i class="bi bi-diagram-3-fill text-warning me-2"></i> Ortak Çalışma Alanı
+                    </div>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sinifNavbar">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="navbar-collapse collapse" id="sinifNavbar">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-2">
+                            <li class="nav-item">
+                                <a class="nav-link text-white fw-bold" asp-controller="Urun" asp-action="Index">
+                                    <i class="bi bi-box-seam-fill me-1"></i> Stoklar
+                                </a>
+                            </li>
+
+                            @if (sadeceOkuma == false)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white fw-bold" asp-controller="Depo" asp-action="Index">
+                                        <i class="bi bi-building me-1"></i> Depolar
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white fw-bold" asp-controller="Kategori" asp-action="Index">
+                                        <i class="bi bi-tags me-1"></i> Kategoriler
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+
+                        <div class="d-flex align-items-center gap-3">
+                            <a asp-controller="Sinif" asp-action="KendiDepomaDon" class="btn btn-light fw-bold rounded-pill text-danger px-4 shadow-sm">
+                                <i class="bi bi-box-arrow-left me-1"></i> Sınıftan Çık
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        }
+        else
+        {
+            @* ANA YÖNETİM PANELİ NAVİGASYONU - sticky-top EKLENDİ *@
+            <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm mb-3">
+                <div class="container-fluid px-4">
+                    <div class="navbar-brand fw-bold mb-0" style="cursor: default;">
+                        <i class="bi bi-box-seam-fill text-primary me-2"></i> DepoFly
+                        <span class="badge bg-primary ms-2" style="font-size: 10px;">Kontrol Paneli</span>
+                    </div>
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="navbar-collapse collapse d-md-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1 gap-3">
+                            <li class="nav-item">
+                                <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
+                                    <i class="bi bi-house-door-fill me-1"></i> Ana Sayfa
+                                </a>
+                            </li>
+
+                            @if (!User.IsInRole("Admin") && !User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-controller="Urun" asp-action="Index">
+                                        <i class="bi bi-box-seam me-1"></i> Stoklar
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-controller="Depo" asp-action="Index">
+                                        <i class="bi bi-building me-1"></i> Depolar
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" asp-controller="Kategori" asp-action="Index">
+                                        <i class="bi bi-tags me-1"></i> Kategoriler
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </nav>
+        }
+    </header>
+
+    @* --- KURUMSAL BARKOD TARAYICI MODAL --- *@
+    <div class="modal fade" id="hizliBarkodModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-upc-scan me-2"></i> Barkod Okuyucu
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" id="modalKapatBtn"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3 text-start">
+                        <label class="small fw-bold text-muted mb-1">
+                            <i class="bi bi-camera-fill"></i> Kamera Kaynağı:
+                        </label>
+                        <select id="layoutKameraSelect" class="form-select form-select-sm shadow-sm border-primary"></select>
+                    </div>
+                    <div id="layoutOkuyucu" class="overflow-hidden rounded-3 border bg-dark shadow-inner" style="width: 100%; min-height: 250px;"></div>
+                    <p class="mt-3 text-muted small">Lütfen barkodu tarama alanına hizalayınız; tanımlama otomatik olarak gerçekleştirilecektir.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @* --- TEKNİK ALTYAPI KÜTÜPHANELERİ --- *@
+    <script src="~/js/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // AGA: Navbar Scroll Efekti Scripti
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 20) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        let layoutQrScanner;
+        const layoutSelect = document.getElementById('layoutKameraSelect');
+
+        // Mevcut kamera donanımlarını listeler
+        async function kameralariYukle() {
+            try {
+                const devices = await Html5Qrcode.getCameras();
+                if (devices && devices.length > 0) {
+                    layoutSelect.innerHTML = "";
+                    devices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.id;
+                        option.text = device.label || `Kamera ${index + 1}`;
+                        layoutSelect.appendChild(option);
+                    });
+                    return devices[0].id;
+                }
+            } catch (err) {
+                console.error("Donanım erişim hatası:", err);
+            }
+            return null;
+        }
+
+        function startLayoutScanner(cameraId) {
+            if (layoutQrScanner && layoutQrScanner.isScanning) {
+                layoutQrScanner.stop().then(() => {
+                    startScanner(cameraId);
+                }).catch(err => {
+                    console.error("Kamera durdurma hatası:", err);
+                    startScanner(cameraId);
+                });
+            } else {
+                startScanner(cameraId);
+            }
+        }
+
+        function startScanner(cameraId) {
+            if (!layoutQrScanner) {
+                layoutQrScanner = new Html5Qrcode("layoutOkuyucu");
+            }
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 280, height: 160 },
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ]
+            };
+
+            layoutQrScanner.start(cameraId, config, (decodedText) => {
+                if (navigator.vibrate) navigator.vibrate(100);
+
+                if (layoutQrScanner.isScanning) {
+                    layoutQrScanner.stop().then(() => {
+                        barkodIsleminiYap(decodedText);
+                    }).catch(err => console.error("Tarayıcı durdurulurken hata oluştu:", err));
+                } else {
+                    barkodIsleminiYap(decodedText);
+                }
+            }).catch(err => console.error("Tarayıcı başlatma hatası:", err));
+        }
+
+        // Barkod verisini sunucu tarafında doğrular
+        function barkodIsleminiYap(decodedText) {
+            const modalEl = document.getElementById('hizliBarkodModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+
+            fetch(`/Urun/BarkodKontrol?barkod=${decodedText}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.sonuc === "var") {
+                        window.location.href = `/Urun/Details/${data.id}`;
+                    } else {
+                        Swal.fire({
+                            title: 'Ürün Bulunamadı',
+                            text: `Sistemde bu barkoda (${decodedText}) ait kayıt bulunamadı. Yeni bir envanter kaydı oluşturmak ister misiniz?`,
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonText: 'Evet, Kayıt Oluştur',
+                            cancelButtonText: 'İptal',
+                            confirmButtonColor: '#0d6efd'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = `/Urun/Create?barkod=${decodedText}`;
+                            }
+                        });
+                    }
+                }).catch(err => console.error("Veri iletişim hatası:", err));
+        }
+
+        // Modal açıldığında tarayıcıyı aktif hale getirir
+        document.getElementById('hizliBarkodModal').addEventListener('shown.bs.modal', async () => {
+            const firstCamId = await kameralariYukle();
+            if (firstCamId) startLayoutScanner(firstCamId);
+        });
+
+        layoutSelect.addEventListener('change', (e) => startLayoutScanner(e.target.value));
+
+        // Modal kapandığında kamerayı serbest bırakır
+        document.getElementById('hizliBarkodModal').addEventListener('hidden.bs.modal', () => {
+            if (layoutQrScanner && layoutQrScanner.isScanning) {
+                layoutQrScanner.stop().catch(err => console.error("Kamera pasif hale getirilemedi:", err));
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

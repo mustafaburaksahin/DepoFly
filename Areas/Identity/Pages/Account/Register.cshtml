@@ -1,0 +1,108 @@
+﻿@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Yeni Kayıt Oluştur";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        @* Kurumsal kutu ikonu mavi renkte ve başlık ile uyumlu şekilde eklenmiştir *@
+                        <h1 class="text-primary fw-bold"><i class="bi bi-box-seam-fill me-2"></i>DepoFly</h1>
+                        <p class="text-muted">Sisteme katılım için yeni bir hesap oluşturun</p>
+                    </div>
+
+                    @* 1. STANDART KAYIT FORMU *@
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control rounded-3" placeholder="eposta@kurum.com" autocomplete="username" aria-required="true" />
+                            <label asp-for="Input.Email">E-posta Adresi</label>
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" class="form-control rounded-3" placeholder="Şifre" autocomplete="new-password" aria-required="true" />
+                            <label asp-for="Input.Password">Şifre</label>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.ConfirmPassword" class="form-control rounded-3" placeholder="Şifre Onayı" autocomplete="new-password" aria-required="true" />
+                            <label asp-for="Input.ConfirmPassword">Şifreyi Onaylayın</label>
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary rounded-3 shadow-sm py-3 fw-bold mb-3">Kayıt İşlemini Tamamla</button>
+                    </form>
+
+                    @* 2. HARİCİ SERVİS ENTEGRASYONLARI (GOOGLE & FACEBOOK) *@
+                    <div class="text-center my-4">
+                        <div class="d-flex align-items-center my-3">
+                            <hr class="flex-grow-1 text-muted opacity-25">
+                            <span class="mx-3 text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">veya</span>
+                            <hr class="flex-grow-1 text-muted opacity-25">
+                        </div>
+
+                        @{
+                            if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                            {
+                                <div>
+                                    <p class="text-muted small">Harici kayıt servisleri şu an aktif değildir.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                    <div class="d-grid gap-2">
+                                        @foreach (var provider in Model.ExternalLogins!)
+                                        {
+                                            if (provider.Name == "Google")
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name"
+                                                        class="btn btn-light py-2 d-flex align-items-center justify-content-center border shadow-sm rounded-3 fw-bold transition-all hover-shadow"
+                                                        style="border-color: #ddd !important;">
+                                                    <img src="https://www.gstatic.com/images/branding/product/1x/googleg_48dp.png"
+                                                         alt="Google" style="width: 20px; height: 20px; margin-right: 12px;">
+                                                    <span class="text-dark">Google Hesabı ile Kaydol</span>
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Facebook")
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name"
+                                                        class="btn btn-primary py-2 d-flex align-items-center justify-content-center border-0 shadow-sm rounded-3 fw-bold transition-all hover-shadow"
+                                                        style="background-color: #1877F2;">
+                                                    <i class="bi bi-facebook fs-5 me-2"></i>
+                                                    <span>Facebook Hesabı ile Kaydol</span>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name" class="btn btn-dark py-2 rounded-3 mb-2">
+                                                    @provider.DisplayName Hesabı ile Devam Et
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </form>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <p class="text-muted small">Mevcut bir hesabınız var mı? <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary fw-bold text-decoration-none">Giriş Yapın</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+@* İstemci taraflı doğrulama bileşenleri *@
+    <partial name="_ValidationScriptsPartial" />
+}

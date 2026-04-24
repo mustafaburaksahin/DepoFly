@@ -1,0 +1,182 @@
+﻿@model List<DepoFly.Models.Sinif>
+
+@{
+    ViewData["Title"] = "Sınıf ve Depo Denetimi - SuperAdmin";
+}
+
+<style>
+    .admin-table-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .sinif-name {
+        font-weight: 700;
+        color: #212529;
+        font-size: 1.1rem;
+    }
+
+    .owner-info {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .status-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 50px;
+    }
+
+    /* Arama Paneli Stili */
+    .search-panel {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+    }
+
+        .search-panel:focus-within {
+            border-color: #dc3545;
+            box-shadow: 0 5px 15px rgba(220,53,69,0.1);
+        }
+</style>
+
+<div class="container mt-5 pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-building-fill text-danger me-2"></i>Sınıf ve Depo Denetimi</h2>
+            <p class="text-muted">Sistem genelindeki tüm ortak çalışma alanlarını ve depoları buradan denetleyebilirsiniz.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-dark rounded-pill fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Geri Dön
+        </a>
+    </div>
+
+    @* --- AKILLI FİLTRELEME ÇUBUĞU --- *@
+    <div class="row g-3 mb-4">
+        <div class="col-md-7">
+            <div class="search-panel d-flex align-items-center px-3 py-1">
+                <i class="bi bi-search text-muted me-2"></i>
+                <input type="text" id="sinifAra" class="form-control border-0 shadow-none py-2" placeholder="Sınıf ismi veya kurucu e-posta adresi ile arama yapınız...">
+            </div>
+        </div>
+        <div class="col-md-5">
+            <select id="durumFiltre" class="form-select border-2 shadow-none py-2 rounded-3">
+                <option value="">Tüm Kayıtlar</option>
+                <option value="AKTİF">Aktif Erişimler</option>
+                <option value="BANLI">Erişimi Kısıtlananlar</option>
+            </select>
+        </div>
+    </div>
+
+    @if (TempData["Basari"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Basari"]
+        </div>
+    }
+
+    <div class="card admin-table-card shadow-lg">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="sinifTablosu">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-4 py-3">Sınıf / Depo Bilgisi</th>
+                        <th class="py-3 text-center">Katılım Kodu</th>
+                        <th class="py-3 text-center">Üye Sayısı</th>
+                        <th class="py-3">Erişim Durumu</th>
+                        <th class="text-end pe-4 py-3">Yönetim Aksiyonları</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var sinif in Model)
+                        {
+                            var kurucuEmail = sinif.SinifKullanicilari
+                            .FirstOrDefault(sk => sk.UserId == sinif.OwnerId)?.User?.Email ?? "Tanımlanmamış Kullanıcı";
+
+                            string durumText = sinif.SistemdenBanliMi ? "BANLI" : "AKTİF";
+                            string statusClass = sinif.SistemdenBanliMi ? "bg-danger" : "bg-success";
+
+                            <tr class="sinif-row"
+                                data-search="@sinif.SinifAdi.ToLower() @kurucuEmail.ToLower()"
+                                data-status="@durumText">
+                                <td class="ps-4">
+                                    <span class="sinif-name">@sinif.SinifAdi</span><br />
+                                    <span class="owner-info"><i class="bi bi-envelope-at me-1"></i> Kurucu Yetkili: <strong>@kurucuEmail</strong></span>
+                                </td>
+                                <td class="text-center">
+                                    <code class="bg-light px-2 py-1 rounded fw-bold text-primary">@sinif.KatilimKodu</code>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="bi bi-people-fill me-1"></i> @sinif.SinifKullanicilari.Count
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge @statusClass status-badge">@durumText</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <form asp-action="SinifDurumDegistir" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@sinif.Id" />
+                                        <button type="submit" class="btn btn-sm @(sinif.SistemdenBanliMi ? "btn-outline-success" : "btn-outline-warning") rounded-pill px-3 fw-bold">
+                                            <i class="bi @(sinif.SistemdenBanliMi ? "bi-unlock-fill" : "bi-lock-fill") me-1"></i>
+                                            @(sinif.SistemdenBanliMi ? "Erişimi Onayla" : "Erişimi Kısıtla")
+                                        </button>
+                                    </form>
+
+                                    <form asp-action="SinifSil" method="post" class="d-inline ms-1" onsubmit="return confirm('UYARI: Seçilen sınıfı ve içeriğindeki tüm envanter kayıtlarını kalıcı olarak silmek üzeresiniz. Bu işlem geri alınamaz. Onaylıyor musunuz?')">
+                                        <input type="hidden" name="id" value="@sinif.Id" />
+                                        <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold">
+                                            <i class="bi bi-trash3-fill me-1"></i> Kaydı Tamamen Sil
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr id="noResultRow">
+                            <td colspan="5" class="text-center py-5 text-muted">Sistemde henüz tanımlanmış bir çalışma alanı bulunmamaktadır.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // --- ANLIK DENETİM FİLTRESİ ---
+        const sinifInput = document.getElementById('sinifAra');
+        const durumFiltre = document.getElementById('durumFiltre');
+        const rows = document.querySelectorAll('.sinif-row');
+
+        function denetimFiltrele() {
+            const aramaTerimi = sinifInput.value.toLowerCase();
+            const secilenDurum = durumFiltre.value;
+
+            rows.forEach(row => {
+                const searchData = row.getAttribute('data-search');
+                const statusData = row.getAttribute('data-status');
+
+                const metinUygun = searchData.includes(aramaTerimi);
+                const durumUygun = secilenDurum === "" || statusData === secilenDurum;
+
+                if (metinUygun && durumUygun) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        sinifInput.addEventListener('input', denetimFiltrele);
+        durumFiltre.addEventListener('change', denetimFiltrele);
+    </script>
+}

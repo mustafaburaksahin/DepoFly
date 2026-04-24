@@ -1,0 +1,41 @@
+﻿@model DepoFly.Models.Kategori
+
+@{
+    ViewData["Title"] = "Kategoriyi Düzenle";
+}
+
+<div class="container mt-4">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-warning text-dark py-3 rounded-top-4" style="background: linear-gradient(135deg, #ffc107, #ffdb58) !important;">
+            <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-square me-2"></i> Kategori Tanımını Güncelle</h4>
+        </div>
+        <div class="card-body p-4">
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                @* Kayıt kimlik ve kullanıcı eşleştirme verileri *@
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="UserId" />
+
+                <div class="form-group mb-4">
+                    <label asp-for="Ad" class="fw-bold mb-2 text-dark">Kategori Adı</label>
+                    <input asp-for="Ad" class="form-control form-control-lg border-2 shadow-sm" style="border-radius: 10px;" />
+                    <span asp-validation-for="Ad" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4 pt-2 border-top">
+                    <button type="submit" class="btn btn-warning btn-lg px-5 fw-bold rounded-pill shadow">
+                        <i class="bi bi-save me-2"></i> Değişiklikleri Kaydet
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary btn-lg rounded-pill ms-2 px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

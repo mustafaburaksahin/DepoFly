@@ -1,0 +1,208 @@
+﻿@model IEnumerable<DepoFly.Models.Urun>
+
+@{
+    ViewData["Title"] = "Stok Listesi";
+    Layout = "_UserLayout";
+}
+
+<style>
+    /* --- BARKOD VE ARAMA TASARIMI --- */
+    #okuyucu {
+        width: 100%;
+        border-radius: 0 0 15px 15px;
+        overflow: hidden;
+        background: #000;
+    }
+
+        #okuyucu video {
+            object-fit: cover !important;
+        }
+
+    #okuyucuKonteyner {
+        border: 3px solid #0d6efd;
+        transition: all 0.3s ease;
+    }
+
+    .input-group-modern {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+        .input-group-modern:focus-within {
+            border-color: #0d6efd;
+            box-shadow: 0 0 10px rgba(13, 110, 253, 0.15);
+        }
+</style>
+
+<div class="container-fluid mt-4 mb-5">
+    @* Üst Başlık ve Ekle Butonu *@
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h3 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                    <i class="bi bi-boxes text-primary me-2"></i> Envanter Stok Durumu
+
+                    @if (ViewBag.SadeceOkuma == true)
+                    {
+                        <span class="badge bg-warning text-dark ms-3 fs-6 rounded-pill"><i class="bi bi-eye-fill me-1"></i> Salt Okunur Mod</span>
+                    }
+                </h3>
+                <p class="text-muted small mb-0 mt-1">Sistemde toplam <span id="toplamUrunSayisi">@Model.Count()</span> kayıtlı ürün bulunmaktadır.</p>
+            </div>
+
+            @if (ViewBag.SadeceOkuma != true)
+            {
+                <a asp-action="Create" class="btn btn-primary btn-lg rounded-pill shadow-sm fw-bold px-4">
+                    <i class="bi bi-plus-lg me-1"></i> Yeni Ürün Ekle
+                </a>
+            }
+        </div>
+    </div>
+
+    @* Arama Çubuğu ve Barkod Butonu *@
+    <div class="row mb-4 justify-content-center">
+        <div class="col-lg-8">
+            <div class="input-group input-group-modern shadow-sm rounded-pill overflow-hidden bg-white">
+                <span class="input-group-text border-0 bg-white ps-4 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="searchInput"
+                       class="form-control form-control-lg border-0 ps-2 py-3"
+                       placeholder="Ürün adı veya barkod numarası ile arama yapınız..."
+                       oninput="hizliAra()">
+                <button class="btn btn-primary border-0 px-4 fw-bold shadow-none" type="button" id="kameraAcBtn">
+                    <i class="bi bi-upc-scan me-2"></i> Barkod Okuyucu
+                </button>
+            </div>
+
+            @* Kamera Ekranı *@
+            <div id="okuyucuKonteyner" style="display:none;" class="mt-3 card border-0 shadow-lg rounded-4 overflow-hidden animate__animated animate__fadeInDown">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center border-0 py-2">
+                    <div class="small fw-bold text-info"><i class="bi bi-broadcast me-2"></i>Tarama İşlemi Devam Ediyor</div>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="kameraCevirBtn" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="bi bi-arrow-repeat me-1"></i> Kamerayı Değiştir
+                        </button>
+                        <button type="button" class="btn-close btn-close-white" id="kameraKapatBtn"></button>
+                    </div>
+                </div>
+                <div id="okuyucu"></div>
+            </div>
+        </div>
+    </div>
+
+    @* Ürünlerin Listelendiği Alan *@
+    <div id="urunListesi" class="animate__animated animate__fadeIn">
+        <partial name="_UrunListesiPartial" model="Model" />
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/html5-qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        let html5QrCode;
+        let currentFacingMode = "environment";
+
+        const btn = document.getElementById('kameraAcBtn');
+        const kapatBtn = document.getElementById('kameraKapatBtn');
+        const cevirBtn = document.getElementById('kameraCevirBtn');
+        const okuyucuKonteyner = document.getElementById('okuyucuKonteyner');
+        const searchInput = document.getElementById('searchInput');
+
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function() {
+                if (typeof urunleriNumaralandir === "function") {
+                    urunleriNumaralandir();
+                }
+            }, 150);
+        });
+
+        function hizliAra() {
+            var kelime = $("#searchInput").val();
+            $.ajax({
+                url: '@Url.Action("Index", "Urun")',
+                type: 'GET',
+                data: { arananKelime: kelime },
+                success: function (result) {
+                    $("#urunListesi").html(result);
+
+                    if (typeof urunleriNumaralandir === "function") {
+                        urunleriNumaralandir();
+                    }
+
+                    let yeniSayi = $("#urunListesi .urun-kart-item").length;
+                    $("#toplamUrunSayisi").text(yeniSayi);
+                },
+                error: function() {
+                    console.log("Arama işlemi sırasında bir hata oluştu.");
+                }
+            });
+        }
+
+        btn.addEventListener('click', () => {
+            if (okuyucuKonteyner.style.display === 'block') {
+                kameraDurdur();
+                return;
+            }
+            okuyucuKonteyner.style.display = 'block';
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("okuyucu");
+            }
+            kamerayiBaslat(currentFacingMode);
+        });
+
+        cevirBtn.addEventListener('click', () => {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    kamerayiBaslat(currentFacingMode);
+                });
+            }
+        });
+
+        function kamerayiBaslat(mode) {
+            const config = {
+                fps: 10,
+                qrbox: { width: 300, height: 150 },
+                aspectRatio: 1.0,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.UPC_A
+                ]
+            };
+
+            html5QrCode.start(
+                { facingMode: mode },
+                config,
+                (okunanBarkod) => {
+                    if (navigator.vibrate) navigator.vibrate(100);
+                    searchInput.value = okunanBarkod;
+                    hizliAra();
+                    kameraDurdur();
+                    Swal.mixin({
+                        toast: true, position: 'top-end', showConfirmButton: false, timer: 1500
+                    }).fire({ icon: 'success', title: 'Barkod başarıyla tanımlandı.' });
+                }
+            ).catch(err => {
+                console.error("Kamera erişim hatası:", err);
+                if (mode === "environment") kamerayiBaslat("user");
+            });
+        }
+
+        kapatBtn.addEventListener('click', kameraDurdur);
+
+        function kameraDurdur() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    okuyucuKonteyner.style.display = 'none';
+                });
+            } else {
+                okuyucuKonteyner.style.display = 'none';
+            }
+        }
+    </script>
+}

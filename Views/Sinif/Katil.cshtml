@@ -1,0 +1,84 @@
+﻿@{
+    ViewData["Title"] = "Sınıfa Katıl - DepoFly";
+}
+
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            @* Hata Mesajları *@
+            <div asp-validation-summary="All" class="text-danger mb-3 fw-bold"></div>
+
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-success py-4 text-center border-0">
+                    <i class="bi bi-door-open-fill text-white display-4 mb-2"></i>
+                    <h3 class="text-white fw-bold mb-0">Sınıf / Birim Katılımı</h3>
+                    <p class="text-white-50 small mb-0">Lütfen tarafınıza iletilen katılım kodunu giriniz.</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5 bg-white">
+                    <form asp-action="Katil" method="post" id="katilForm">
+                        <div class="form-group mb-4">
+                            <label for="katilimKodu" class="form-label fw-bold text-dark">Katılım Kodu</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-light border-end-0 text-success">
+                                    <i class="bi bi-hash"></i>
+                                </span>
+                                <input type="text"
+                                       id="katilimKodu"
+                                       name="katilimKodu"
+                                       class="form-control bg-light border-start-0 text-center fw-bold text-uppercase"
+                                       placeholder="DFLY-XXXXX"
+                                       required
+                                       maxlength="10"
+                                       style="letter-spacing: 2px;" />
+                            </div>
+                            <div class="form-text text-muted mt-2">
+                                <i class="bi bi-info-circle me-1"></i> Standart katılım kodları "DFLY-" ön eki ile başlamaktadır.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" id="btnKatilSubmit" class="btn btn-success btn-lg rounded-pill fw-bold shadow-sm py-3 transition-card">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> Join Unit
+                            </button>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-link text-muted fw-bold text-decoration-none">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @* Yardım Notu *@
+            <div class="mt-4 text-center">
+                <div class="p-3 bg-light rounded-4 border border-light shadow-sm">
+                    <p class="small text-muted mb-0">
+                        <strong>Bilgilendirme:</strong> Bir birime katıldığınızda, ilgili birimin envanter içeriğine erişim sağlayabilir ve yetki seviyeniz dahilinde işlem gerçekleştirebilirsiniz. Kişisel veri ve depolarınız bu işlemden etkilenmez.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Kullanıcı yazarken otomatik büyük harfe çevirir ve boşlukları temizler
+        document.getElementById('katilimKodu').addEventListener('input', function (e) {
+            this.value = this.value.toUpperCase().replace(/\s/g, '');
+        });
+
+        // Form gönderilirken butonu kilitler ve işlem durumunu gösterir
+        document.getElementById('katilForm').addEventListener('submit', function () {
+            var btn = document.getElementById('btnKatilSubmit');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+        });
+    </script>
+}

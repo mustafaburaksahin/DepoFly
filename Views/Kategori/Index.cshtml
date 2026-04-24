@@ -1,0 +1,89 @@
+﻿@model IEnumerable<DepoFly.Models.Kategori>
+
+@{
+    ViewData["Title"] = "Kategoriler";
+    Layout = "_UserLayout";
+    // Controller'dan gelen yetki bilgisini alıyoruz
+    bool sadeceOkuma = ViewBag.SadeceOkuma ?? false;
+}
+
+<div class="container-fluid mt-4">
+    @* Üst Başlık ve Ekle Butonu *@
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center py-3">
+            <div>
+                <h3 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-tags text-info"></i> Ürün Kategorileri
+                </h3>
+                <p class="text-muted small mb-0">Sistemde tanımlı toplam @Model.Count() kategori bulunmaktadır.</p>
+            </div>
+
+            @* YETKİLİ KULLANICI KONTROLÜ *@
+            @if (!sadeceOkuma)
+            {
+                <a asp-action="Create" class="btn btn-info btn-lg rounded-3 shadow-sm fw-bold text-white" style="background: linear-gradient(135deg, #6610f2, #6f42c1); border:none;">
+                    <i class="bi bi-plus-lg"></i> Kategori Ekle
+                </a>
+            }
+            else
+            {
+                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-eye-fill me-1"></i> Salt Okunur Erişim
+                </span>
+            }
+        </div>
+    </div>
+
+    @* Kategori Listesi *@
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Kategori Tanımı</th>
+                            @if (!sadeceOkuma)
+                            {
+                                <th class="text-end pe-4">Yönetim İşlemleri</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Any())
+                        {
+                            <tr>
+                                <td colspan="@(sadeceOkuma ? "1" : "2")" class="text-center py-4 text-muted small">Sistemde kayıtlı kategori bulunmamaktadır.</td>
+                            </tr>
+                        }
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-info bg-opacity-10 p-2 rounded-3 me-3 text-info" style="color: #6f42c1 !important;">
+                                            <i class="bi bi-tag-fill"></i>
+                                        </div>
+                                        <span class="fw-bold text-dark">@item.Ad</span>
+                                    </div>
+                                </td>
+
+                                @* İŞLEM BUTONLARI *@
+                                @if (!sadeceOkuma)
+                                {
+                                    <td class="text-end pe-4">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1">
+                                            <i class="bi bi-pencil"></i>Düzenle
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                                            <i class="bi bi-trash"></i> Sil
+                                        </a>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

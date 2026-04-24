@@ -1,0 +1,615 @@
+﻿@model List<DepoFly.Models.SinifKullanici>
+
+@{
+    ViewData["Title"] = "Ana Sayfa - DepoFly";
+    bool isAdmin = User.IsInRole("Admin");
+    bool isNormalUser = !User.IsInRole("Admin") && !User.IsInRole("SuperAdmin") && (User.Identity?.IsAuthenticated ?? false);
+}
+
+<style>
+    @@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+    body {
+        font-family: 'Poppins', sans-serif !important;
+        background-color: #f8f9fa;
+        overflow-x: hidden;
+    }
+
+    .hero-section {
+        padding: 80px 0;
+    }
+
+    .landing-badge {
+        background-color: #e7f0fd;
+        color: #0d6efd;
+        font-weight: 700;
+        padding: 8px 20px;
+        border-radius: 50px;
+        display: inline-block;
+        font-size: 0.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .landing-title {
+        font-weight: 800;
+        font-size: 3rem;
+        color: #0d6efd;
+        line-height: 1.2;
+        margin-bottom: 2.5rem;
+    }
+
+    .feature-box-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .small-icon-box {
+        width: 60px;
+        height: 60px;
+        background: #e7f0fd;
+        color: #0d6efd;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        border: 2px solid #dee2e6;
+    }
+
+    .long-text-box {
+        flex-grow: 1;
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        color: #495057;
+        font-size: 0.95rem;
+        line-height: 1.4;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-img-card {
+        border-radius: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        width: 100%;
+        height: 450px;
+        object-fit: cover;
+    }
+
+    .btn-custom-main {
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        transition: 0.3s;
+    }
+
+    .btn-custom-outline {
+        padding: 15px 40px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        border: 2px solid #212529;
+        color: #212529;
+        transition: 0.3s;
+        text-decoration: none;
+    }
+
+        .btn-custom-outline:hover {
+            background: #212529;
+            color: white;
+        }
+
+    .welcome-text {
+        font-weight: 800;
+        font-size: 2.5rem;
+    }
+
+    .stat-card {
+        position: relative;
+        border-radius: 15px;
+        border: none;
+        transition: 0.3s;
+        height: 100%;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    .transition-card {
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+        border: none;
+    }
+
+        .transition-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 1rem 3rem rgba(13, 110, 253, 0.15) !important;
+        }
+
+    #anaSayfaOkuyucu {
+        width: 100%;
+        max-width: 450px;
+        margin: 0 auto;
+        border-radius: 12px;
+        overflow: hidden;
+        display: none;
+        background: #000;
+    }
+
+    .banned-card {
+        cursor: not-allowed !important;
+        opacity: 0.8;
+        background-color: #f8f9fa !important;
+    }
+
+        .banned-card:hover {
+            transform: none !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        }
+
+    /* --- ÜSTTEN BOŞLUKLU ŞERİT --- */
+    .stats-section-full {
+        background: linear-gradient(145deg, #1c2025 0%, #111316 100%);
+        color: #f8f9fa;
+        padding: 1.5rem 0;
+        margin-top: 5rem;
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        border-radius: 0 !important;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: -1.5rem !important;
+    }
+
+    .stat-item {
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+    /* --- TOOLTIP (BİLGİ BALONU) TASARIMI --- */
+    .stat-tooltip {
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background-color: #0d6efd;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        width: 220px;
+        text-align: center;
+        line-height: 1.5;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 10px 30px rgba(13, 110, 253, 0.4);
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+        .stat-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px;
+            border-style: solid;
+            border-color: #0d6efd transparent transparent transparent;
+        }
+
+    .stat-item:hover .stat-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .stat-item h2 {
+        font-weight: 800;
+        font-size: 2.2rem;
+        margin-bottom: 0.1rem;
+        background: linear-gradient(90deg, #ffffff, #adb5bd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-item p {
+        font-weight: 600;
+        color: #8b929a;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 0.75rem;
+    }
+
+    .stat-icon {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+        color: #0d6efd;
+        opacity: 0.8;
+    }
+
+    /* Arama Paneli Tasarımı */
+    .admin-search-panel {
+        max-width: 600px;
+        margin: 2rem auto 0 auto;
+        background: white;
+        border-radius: 20px;
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+    }
+
+        .admin-search-panel:focus-within {
+            border-color: #0d6efd;
+            box-shadow: 0 10px 25px rgba(13, 110, 253, 0.1);
+            transform: translateY(-2px);
+        }
+</style>
+
+<div class="container mt-5 mb-0">
+    @if (!User.Identity?.IsAuthenticated ?? true)
+    {
+        @* --- GİRİŞ YAPILMAMIŞ KARŞILAMA EKRANI --- *@
+        <div class="row align-items-center hero-section mb-5 pb-5">
+            <div class="col-lg-6 pe-lg-5">
+                <span class="landing-badge text-uppercase">Akıllı Yönetim</span>
+                <h1 class="landing-title">Temel Özelliklerimiz & Stok Takibi</h1>
+                <div class="feature-box-row">
+                    <div class="small-icon-box shadow-sm"><i class="bi bi-box-seam-fill"></i></div>
+                    <div class="long-text-box shadow-sm">DepoFly ile ürünlerinizin miktarını, varyasyonlarını ve stok geçmişini anlık olarak tek ekrandan takip edin. Karmaşayı bitirin.</div>
+                </div>
+                <div class="feature-box-row mb-4">
+                    <div class="small-icon-box shadow-sm"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="long-text-box shadow-sm">Anlık raporlama ve stok hareket grafikleriyle deponuzun ritmini tutun, gelecek planlamanızı verilerle yapın.</div>
+                </div>
+                <div class="d-flex align-items-center gap-3 mt-4">
+                    <a asp-area="Identity" asp-page="/Account/Register" class="btn btn-primary btn-custom-main shadow-lg">Hemen Başla</a>
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn-custom-outline">Giriş Yap</a>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1200&auto=format&fit=crop" class="hero-img-card" alt="Depo">
+            </div>
+        </div>
+
+        <div class="row align-items-center hero-section flex-column-reverse flex-lg-row mb-0 pb-0">
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <img src="https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=1200&auto=format&fit=crop" class="hero-img-card" alt="Barkod">
+            </div>
+            <div class="col-lg-6 ps-lg-5">
+                <span class="landing-badge text-uppercase" style="background-color: #fff3e0; color: #ef6c00;">Hızlı Erişim</span>
+                <h1 class="landing-title" style="color: #ef6c00;">Akıllı Barkod Entegrasyonu</h1>
+                <div class="feature-box-row">
+                    <div class="small-icon-box shadow-sm" style="background-color: #fff3e0; color: #ef6c00;"><i class="bi bi-upc-scan"></i></div>
+                    <div class="long-text-box shadow-sm">Ekstra cihazlara gerek yok! Telefonunuzun kamerasını kullanarak saniyeler içinde barkod tarayın.</div>
+                </div>
+                <div class="feature-box-row mb-4">
+                    <div class="small-icon-box shadow-sm" style="background-color: #fff3e0; color: #ef6c00;"><i class="bi bi-camera-fill"></i></div>
+                    <div class="long-text-box shadow-sm">Otomatik odaklama ve hızlı tanıma sistemiyle binlerce barkodu hatasız bir şekilde sisteme işleyin.</div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* --- GİRİŞ YAPMIŞ KULLANICI / ADMİN EKRANI --- *@
+        <div class="welcome-section text-center mb-5">
+            @if (isAdmin)
+            {
+                <h2 class="welcome-text mb-1">Hoş geldin Admin! 👤</h2>
+                <p class="text-muted fs-5">Organizasyon ve sınıflarını buradan yönetebilirsin.</p>
+
+                @* --- ADMİN İÇİN AKILLI SINIF ARAMA MOTORU --- *@
+                <div class="admin-search-panel d-flex align-items-center px-4 py-2 shadow-sm">
+                    <i class="bi bi-search text-primary fs-5 me-3"></i>
+                    <input type="text" id="sinifFiltrele" class="form-control border-0 shadow-none py-2" placeholder="Sınıf ismi veya kodu yaz, şak diye bulalım...">
+                </div>
+            }
+            else
+            {
+                <h2 class="welcome-text mb-1">Hoş geldin! 👋</h2>
+                <p class="text-muted fs-5">@User.Identity?.Name, dükkanın tıkır tıkır işliyor.</p>
+            }
+        </div>
+
+        @if (isNormalUser)
+        {
+            <div class="row g-4 mb-5">
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm rounded-4 p-4 bg-primary text-white h-100">
+                        <h5 class="fw-bold mb-3"><i class="bi bi-upc-scan me-2"></i> Hızlı Ürün Bul</h5>
+                        <div id="anaSayfaOkuyucu" class="mb-3"></div>
+                        <button class="btn btn-light w-100 rounded-pill fw-bold" id="anaSayfaKameraBtn">Kamerayı Başlat</button>
+                        <button class="btn btn-danger w-100 rounded-pill fw-bold mt-2" id="kameraKapatBtn" style="display:none;">Kapat</button>
+                    </div>
+                </div>
+                <div class="col-lg-7">
+                    <div class="row g-3 h-100">
+                        <div class="col-6">
+                            <div class="stat-card bg-white p-4 text-center border-bottom border-primary border-4 shadow-sm">
+                                <i class="bi bi-box-seam text-primary fs-1"></i>
+                                <h3 id="urunSayisi" class="fw-bold text-primary mt-2">0</h3>
+                                <small class="text-muted fw-bold">STOK PANELİ</small>
+                                <a asp-controller="Urun" asp-action="Index" class="stretched-link"></a>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card bg-white p-4 text-center border-bottom border-success border-4 shadow-sm">
+                                <i class="bi bi-plus-circle-fill text-success fs-1"></i>
+                                <h3 class="fw-bold text-success mt-2">+</h3>
+                                <small class="text-muted fw-bold">YENİ KAYIT</small>
+                                <a asp-controller="Urun" asp-action="Create" class="stretched-link"></a>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card bg-white p-4 text-center border-bottom border-warning border-4 shadow-sm">
+                                <i class="bi bi-building-fill text-warning fs-1"></i>
+                                <h4 id="depoSayisi" class="fw-bold text-warning mt-2">0</h4>
+                                <small class="text-muted fw-bold">DEPOLAR</small>
+                                <a asp-controller="Depo" asp-action="Index" class="stretched-link"></a>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="stat-card bg-white p-4 text-center border-bottom border-info border-4 shadow-sm">
+                                <i class="bi bi-tags-fill text-info fs-1"></i>
+                                <h4 id="kategoriSayisi" class="fw-bold text-info mt-2">0</h4>
+                                <small class="text-muted fw-bold">KATEGORİLER</small>
+                                <a asp-controller="Kategori" asp-action="Index" class="stretched-link"></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* --- MEVCUT BUTONLARIN BİTTİĞİ YER --- *@
+     @* isNormalUser if bloğunun sonu *@
+
+    @* Kullanıcıyı bilinçlendiren o açıklama yazısı *@
+    @if (isNormalUser)
+    {
+        <div class="text-center mt-4">
+            <div class="d-inline-block px-4 py-2 bg-white shadow-sm rounded-pill border border-primary border-opacity-10">
+                <p class="mb-0 text-muted small fw-medium">
+                    <i class="bi bi-person-badge-fill text-primary me-2"></i>
+                    Yukarıdaki paneller <strong>senin şahsi depona</strong> aittir. Buradan sadece kendi stoklarını ve kategorilerini yönetirsin.
+                </p>
+            </div>
+        </div>
+    }
+
+        <hr class="my-5 opacity-25" />
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-dark"><i class="bi bi-people-fill text-primary me-2"></i>Sınıflarım</h3>
+            <div>
+                @if (isNormalUser)
+                {
+                    <a asp-controller="Sinif" asp-action="Katil" class="btn btn-outline-success rounded-pill px-4 shadow-sm">Sınıfa Katıl</a>
+                }
+                @if (isAdmin)
+                {
+                    <a asp-controller="Sinif" asp-action="Olustur" class="btn btn-primary rounded-pill px-4 shadow-sm">Yeni Sınıf Oluştur</a>
+                }
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5" id="sinifListesiContainer">
+            @if (Model != null && Model.Count > 0)
+            {
+                @foreach (var kayit in Model)
+                {
+                    bool hasAnyBan = kayit.Sinif.SistemdenBanliMi || kayit.SınıftanBanliMi;
+
+                    <div class="col-md-6 col-lg-4 sinif-kart-item">
+                        <div class="card shadow-sm h-100 transition-card border-0 rounded-4 p-4 bg-white @(hasAnyBan ? "banned-card" : "")"
+                             data-search="@kayit.Sinif.SinifAdi.ToLower() @kayit.Sinif.KatilimKodu.ToLower()">
+                            <h4 class="fw-bold mb-1 @(hasAnyBan ? "text-muted" : "")">@kayit.Sinif.SinifAdi</h4>
+                            <small class="fw-bold @(hasAnyBan ? "text-muted" : "text-primary")">Kod: @kayit.Sinif.KatilimKodu</small>
+                            <p class="text-muted small mt-3" style="min-height: 40px;">@kayit.Sinif.Aciklama</p>
+
+                            <div class="mt-auto pt-4">
+                                @if (kayit.Sinif.SistemdenBanliMi)
+                                {
+                                    <div class="alert alert-danger mb-0 py-2 text-center rounded-pill border-0 shadow-sm">
+                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> <span class="fw-bold small">Sistem Tarafından Kapatıldı</span>
+                                    </div>
+                                }
+                                else if (kayit.SınıftanBanliMi)
+                                {
+                                    <div class="alert alert-danger mb-0 py-2 text-center rounded-pill border-0 shadow-sm">
+                                        <i class="bi bi-slash-circle-fill me-1"></i> <span class="fw-bold small">Sınıftan Banlandınız</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @*Kullanıcıyı bilinçlendiren mesaj *@
+                                    @if (isNormalUser)
+                                    {
+                                        <div class="text-center mb-3 bg-light p-2 rounded-3 border border-primary border-opacity-10">
+                                            <small class="text-muted" style="font-size: 0.75rem; line-height: 1.2; display: block;">
+                                                <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                                                Bu sınıfa girerek ortak stokları yönetebilir veya ürün ekleyebilirsin.
+                                            </small>
+                                        </div>
+                                    }
+
+                                    <div class="d-flex gap-2">
+                                        <a asp-controller="Sinif" asp-action="DepoyaGir" asp-route-id="@kayit.SinifId" class="btn btn-success w-100 rounded-pill fw-bold">Gir</a>
+                                        @if (kayit.SinifİciRol != DepoFly.Models.SinifRolleri.Kullanici)
+                                        {
+                                            <a asp-controller="Sinif" asp-action="Yonet" asp-route-id="@kayit.SinifId" class="btn btn-warning w-100 rounded-pill fw-bold text-dark">Yönet</a>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center py-5 bg-light rounded-4 border" style="border-style: dashed !important; border-width: 2px !important;">
+                    <i class="bi bi-inboxes text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h4 class="fw-bold text-dark">Henüz hiçbir sınıfa dahil değilsin.</h4>
+
+                    @if (isNormalUser)
+                    {
+                        <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+                            Sınıflar, deponu personellerinle ortak yönetmeni sağlar.
+                            Sana verilen <strong>katılım koduyla</strong> bir sınıfa dahil olabilirsin.
+                        </p>
+                        <a asp-controller="Sinif" asp-action="Katil" class="btn btn-primary rounded-pill px-5 fw-bold shadow">
+                            Hemen Bir Sınıfa Katıl
+                        </a>
+                    }
+                    else if (isAdmin)
+                    {
+                        <p class="text-muted mx-auto mb-4">Henüz yönettiğin bir sınıf yok. Hemen bir tane oluşturup personellerini davet et.</p>
+                        <a asp-controller="Sinif" asp-action="Olustur" class="btn btn-primary rounded-pill px-5 fw-bold shadow">
+                            Yeni Sınıf Oluştur
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@* --- ALT İSTATİSTİK ŞERİDİ (SADECE GİRİŞ YAPILMAMIŞSA GÖZÜKÜR) --- *@
+@if (!User.Identity?.IsAuthenticated ?? true)
+{
+    <div class="stats-section-full">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-around text-center gap-4">
+                <div class="stat-item">
+                    <div class="stat-tooltip">Sistemi aktif kullanan ve her geçen gün büyüyen ailemize sen de katıl.</div>
+                    <i class="bi bi-people-fill stat-icon"></i>
+                    <h2>99+</h2>
+                    <p>Aktif Kullanıcı</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-tooltip">Sistemine her an, her yerden ve her cihazdan sorunsuzca ulaş.</div>
+                    <i class="bi bi-clock-history stat-icon"></i>
+                    <h2>7/24</h2>
+                    <p>Kesintisiz Erişim</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-tooltip">Tüm stok verilerin güncel SSL teknolojileri ile şifrelenir ve korunur.</div>
+                    <i class="bi bi-shield-check stat-icon"></i>
+                    <h2>%100</h2>
+                    <p>Güvenli Bulut</p>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-tooltip">Herhangi bir sınır olmadan, kameranla saniyeler içinde binlerce barkod oku.</div>
+                    <i class="bi bi-upc-scan stat-icon"></i>
+                    <h2>Sınırsız</h2>
+                    <p>Barkod Tarama</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/html5-qrcode.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // --- 1. AKILLI SINIF FİLTRELEME (ADMİN İÇİN) ---
+            const filtreleInput = document.getElementById('sinifFiltrele');
+            if (filtreleInput) {
+                filtreleInput.addEventListener('input', function() {
+                    const kelime = this.value.toLowerCase();
+                    const kartlar = document.querySelectorAll('.sinif-kart-item');
+
+                    kartlar.forEach(item => {
+                        const content = item.querySelector('.card').getAttribute('data-search');
+                        if (content.includes(kelime)) {
+                            item.style.display = "";
+                        } else {
+                            item.style.display = "none";
+                        }
+                    });
+                });
+            }
+
+            // --- 2. İSTATİSTİKLERİ ÇEKME ---
+            const statBox = document.getElementById('urunSayisi');
+            if (statBox) {
+                fetch('/Home/İstatistikleriGetir')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('urunSayisi').innerText = data.urunSayisi;
+                        document.getElementById('depoSayisi').innerText = data.depoSayisi;
+                        document.getElementById('kategoriSayisi').innerText = data.kategoriSayisi;
+                    })
+                    .catch(err => console.log("İstatistik çekilemedi: ", err));
+            }
+
+            // --- 3. KAMERA / BARKOD OKUYUCU MANTIĞI ---
+            const btn = document.getElementById('anaSayfaKameraBtn');
+            const kapatBtn = document.getElementById('kameraKapatBtn');
+            const okuyucuDiv = document.getElementById('anaSayfaOkuyucu');
+            let html5QrCode;
+
+            if(btn) {
+                btn.addEventListener('click', () => {
+                    btn.style.display = 'none';
+                    kapatBtn.style.display = 'block';
+                    okuyucuDiv.style.display = 'block';
+
+                    if (!html5QrCode) {
+                        html5QrCode = new Html5Qrcode("anaSayfaOkuyucu");
+                    }
+
+                    const config = {
+                        fps: 20,
+                        qrbox: { width: 250, height: 150 },
+                        aspectRatio: 1.0
+                    };
+
+                    html5QrCode.start(
+                        { facingMode: "environment" },
+                        config,
+                        (kod) => {
+                            if (navigator.vibrate) navigator.vibrate(100);
+                            html5QrCode.stop().then(() => {
+                                window.location.href = `/Urun/Index?arananKelime=${kod}`;
+                            });
+                        }
+                    ).catch(err => {
+                        console.error("Kamera hatası:", err);
+                        alert("Kamera başlatılamadı!");
+                        kapatBtn.click();
+                    });
+                });
+
+                kapatBtn.addEventListener('click', () => {
+                    if (html5QrCode && html5QrCode.isScanning) {
+                        html5QrCode.stop().then(() => {
+                            kapatBtn.style.display = 'none';
+                            btn.style.display = 'block';
+                            okuyucuDiv.style.display = 'none';
+                        });
+                    } else {
+                        kapatBtn.style.display = 'none';
+                        btn.style.display = 'block';
+                        okuyucuDiv.style.display = 'none';
+                    }
+                });
+            }
+        });
+    </script>
+}

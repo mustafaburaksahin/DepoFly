@@ -1,0 +1,373 @@
+﻿@model DepoFly.Models.IletisimMesaj
+@{
+    ViewData["Title"] = "İletişim - DepoFly";
+}
+
+<style>
+    .feature-icon-box {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        font-size: 1.5rem;
+    }
+
+    .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        background-color: #fff !important;
+        border: 1px solid #0d6efd !important;
+    }
+
+    .accordion-button:focus {
+        box-shadow: none;
+    }
+
+    .accordion-button::after {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%230d6efd'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e") !important;
+        background-size: 1.1rem;
+        transition: transform 0.3s ease;
+    }
+
+    .accordion-button:not(.collapsed)::after {
+        transform: rotate(-180deg);
+    }
+
+    .accordion-item {
+        transition: all 0.3s ease;
+    }
+
+        .accordion-item:hover {
+            background-color: #fcfcfc;
+        }
+
+    /* --- ÜSTTEN BOŞLUKLU, ALTTAN SIFIRLANMIŞ ŞERİT --- */
+    .stats-section-full {
+        background: linear-gradient(145deg, #1c2025 0%, #111316 100%);
+        color: #f8f9fa;
+        padding: 1.5rem 0;
+        margin-top: 5rem; /* ÜST TARAFA RAHAT BİR BOŞLUK VERDİK */
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        border-radius: 0 !important;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        margin-bottom: -1.5rem !important;
+    }
+
+    /* --- TOOLTIP VE HOVER EFEKTLERİ --- */
+    .stat-item {
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-item h2 {
+            font-weight: 800;
+            font-size: 2.2rem;
+            margin-bottom: 0.1rem;
+            background: linear-gradient(90deg, #ffffff, #adb5bd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-item p {
+            font-weight: 600;
+            color: #8b929a;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+        }
+
+    .stat-icon {
+        font-size: 1.8rem;
+        margin-bottom: 8px;
+        color: #0d6efd;
+        opacity: 0.8;
+    }
+
+    .stat-tooltip {
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%) translateY(15px);
+        background-color: #0d6efd;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        width: 180px;
+        text-transform: none;
+        letter-spacing: normal;
+        line-height: 1.4;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 10px 25px rgba(13, 110, 253, 0.3);
+        z-index: 10;
+        pointer-events: none;
+    }
+
+        .stat-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #0d6efd transparent transparent transparent;
+        }
+
+    .stat-item:hover .stat-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+</style>
+
+<div class="container mt-5 pt-5 mb-0">
+    <div class="row align-items-center mb-5">
+        <div class="col-12 text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-3 d-inline-block text-uppercase px-3 py-2 rounded-pill fw-bold">Bize Ulaşın</span>
+            <h1 class="display-4 fw-bold text-primary mb-3">Sorularınız İçin Buradayız</h1>
+            <p class="text-secondary lead">Sistemi kurarken veya kullanırken yardıma ihtiyacınız olursa çekinmeden yazın.</p>
+        </div>
+
+        <div class="col-lg-5 mb-4 mb-lg-0">
+            <div class="d-flex align-items-center mb-4 p-4 bg-white shadow-sm rounded-4 border border-light transition-hover">
+                <div class="feature-icon-box bg-primary bg-opacity-10 text-primary me-3">
+                    <i class="bi bi-geo-alt-fill"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-1">Adres</h5>
+                    <p class="text-muted mb-0">Kayseri, Türkiye</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center mb-4 p-4 bg-white shadow-sm rounded-4 border border-light">
+                <div class="feature-icon-box bg-warning bg-opacity-10 text-warning me-3">
+                    <i class="bi bi-telephone-fill"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-1">Telefon</h5>
+                    <p class="text-muted mb-0">+90 (111) 111 11 11</p>
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center p-4 bg-white shadow-sm rounded-4 border border-light">
+                <div class="feature-icon-box bg-success bg-opacity-10 text-success me-3">
+                    <i class="bi bi-envelope-fill"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-1">E-Posta</h5>
+                    <p class="text-muted mb-0">depofly.destek@gmail.com</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="bg-white p-4 p-md-5 shadow-lg rounded-4 border border-light">
+                <form asp-action="Iletisim" method="post">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Adınız Soyadınız</label>
+                            <input name="AdSoyad" type="text" class="form-control bg-light border-0 py-2" placeholder="Örn: Ad Soyad" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">E-Posta Adresiniz</label>
+                            <input name="Email" type="email" class="form-control bg-light border-0 py-2" placeholder="Örn: mail@adres.com" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Mesajınız</label>
+                            <textarea name="Mesaj" class="form-control bg-light border-0 py-2" rows="4" placeholder="Nasıl yardımcı olabiliriz?" required></textarea>
+                        </div>
+
+                        @* --- GOOGLE RECAPTCHA KUTUCUĞU --- *@
+                        <div class="col-12 mt-3 d-flex justify-content-center">
+                            @* DİKKAT: BURAYA GOOGLE DAN ALDIĞIN SITE KEY'İ YAPIŞTIRMALISIN *@
+                            <div class="g-recaptcha" data-sitekey="6LdNSsIsAAAAAHi0xnOUqDzJotPjuhfyQ83szwdM"></div>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary w-100 fw-bold py-3 rounded-3 shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i> Mesajı Gönder
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 pt-5 justify-content-center border-top mb-4">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-3">S.S.S.</span>
+                <h3 class="fw-bold">Aklına Takılanlar mı Var?</h3>
+                <p class="text-muted">En çok merak edilen noktaları senin için netleştirdik.</p>
+            </div>
+
+            <div class="accordion accordion-flush shadow-sm rounded-4 overflow-hidden border border-light" id="premiumSss">
+
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss1">
+                            <i class="bi bi-cash-stack text-primary me-2"></i> Sistem Ücretsiz Mi?
+                        </button>
+                    </h2>
+                    <div id="sss1" class="accordion-collapse collapse show" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            Evet, DepoFly temel özellikleriyle tamamen ücretsiz olarak sunulmaktadır. Herhangi bir ücret ödemeden stok takibi ve barkod işlemlerini gerçekleştirebilirsin.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss2">
+                            <i class="bi bi-shield-lock-fill text-primary me-2"></i> Verilerim ve stok bilgilerim gerçekten güvende mi?
+                        </button>
+                    </h2>
+                    <div id="sss2" class="accordion-collapse collapse" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            Verilerin güvende! Tüm bilgiler modern şifreleme yöntemleriyle (SSL) korunuyor ve bulut sunucularımızda günlük olarak yedekleniyor. Senin iznin olmadan kimse verilerine dokunamaz.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss3">
+                            <i class="bi bi-key-fill text-primary me-2"></i> Şifremi unuttum, ne yapmalıyım?
+                        </button>
+                    </h2>
+                    <div id="sss3" class="accordion-collapse collapse" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            Giriş ekranındaki "Şifremi Unuttum" linkine tıklayarak e-posta adresine bir sıfırlama kodu isteyebilirsin. <strong>Not:</strong> Eğer sisteme Google hesabınla kayıt olduysan bir şifren yoktur; direkt "Google ile Giriş Yap" butonunu kullanmalısın.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss4">
+                            <i class="bi bi-cloud-slash-fill text-primary me-2"></i> İnternet kesilirse sistem çalışmaya devam eder mi?
+                        </button>
+                    </h2>
+                    <div id="sss4" class="accordion-collapse collapse" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            DepoFly bulut tabanlı bir sistemdir. Verilerinin anlık senkronize olması için aktif bir internet bağlantısı gerekir. Ancak mobil uyumlu olduğu için telefonunun internetiyle kaldığın yerden devam edebilirsin.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item border-bottom">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss5">
+                            <i class="bi bi-people-fill text-primary me-2"></i> Birden fazla kullanıcı veya personel hesabı ekleyebilir miyim?
+                        </button>
+                    </h2>
+                    <div id="sss5" class="accordion-collapse collapse" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            Evet, DepoFly seninle birlikte büyümek için tasarlandı! Yakın zamanda gelecek "Ekip Yönetimi" güncellemesi ile dükkanındaki personellere özel alt hesaplar oluşturabilecek ve onlara farklı yetkiler tanımlayabileceksin.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold py-4 px-4 shadow-none bg-white text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#sss6">
+                            <i class="bi bi-qr-code-scan text-primary me-2"></i> Barkod okutma hızı ve cihaz desteği nasıl?
+                        </button>
+                    </h2>
+                    <div id="sss6" class="accordion-collapse collapse" data-bs-parent="#premiumSss">
+                        <div class="accordion-body px-4 pb-4 pt-0 text-secondary">
+                            Ekstra bir barkod okuyucu cihaza ihtiyacın yok. Telefonunun veya bilgisayarının kamerasını kullanarak hızlı tarama yapabilirsin. EAN-13 ve Code-128 gibi standartları destekliyoruz.
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@* --- KÖŞELERİ SIFIRLANMIŞ TAM GENİŞLİK İSTATİSTİK --- *@
+<div class="stats-section-full">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-around text-center gap-4">
+            <div class="stat-item">
+                <div class="stat-tooltip">Sistemi aktif kullanan ve her geçen gün büyüyen ailemize sen de katıl.</div>
+                <i class="bi bi-people-fill stat-icon"></i>
+                <h2>99+</h2>
+                <p>Aktif Kullanıcı</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-tooltip">Sistemine her an, her yerden ve her cihazdan sorunsuzca ulaş.</div>
+                <i class="bi bi-clock-history stat-icon"></i>
+                <h2>7/24</h2>
+                <p>Kesintisiz Erişim</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-tooltip">Tüm stok verilerin güncel SSL teknolojileri ile şifrelenir ve korunur.</div>
+                <i class="bi bi-shield-check stat-icon"></i>
+                <h2>%100</h2>
+                <p>Güvenli Bulut</p>
+            </div>
+            <div class="stat-item">
+                <div class="stat-tooltip">Herhangi bir sınır olmadan, kameranla saniyeler içinde binlerce barkod oku.</div>
+                <i class="bi bi-upc-scan stat-icon"></i>
+                <h2>Sınırsız</h2>
+                <p>Barkod Tarama</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* GOOGLE RECAPTCHA API SCRIPTI *@
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var basariMesaji = '@Html.Raw(TempData["Mesaj"])';
+            if (basariMesaji) {
+                Swal.fire({
+                    title: 'Harika!',
+                    text: basariMesaji,
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                });
+            }
+
+            var modelGecersiz = '@(!ViewData.ModelState.IsValid ? "true" : "false")';
+            // ModelState içindeki hataları (örn: Captcha doğrulanmadı) göstermek için
+            var hataMesaji = '@Html.Raw(ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage)';
+
+            if (modelGecersiz === "true" || hataMesaji) {
+                Swal.fire({
+                    title: 'Hata!',
+                    text: hataMesaji ? hataMesaji : 'Lütfen tüm alanları doğru doldurduğundan emin ol.',
+                    icon: 'error',
+                    confirmButtonColor: '#0d6efd',
+                    customClass: { popup: 'rounded-4 shadow-lg border-0' }
+                });
+            }
+        });
+    </script>
+}

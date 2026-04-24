@@ -1,0 +1,181 @@
+﻿@model DepoFly.Models.ProfilViewModel
+@using Microsoft.AspNetCore.Identity
+@using DepoFly.Models
+@inject UserManager<ApplicationUser> UserManager
+@{
+    ViewData["Title"] = "Profil Ayarları";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+
+<style>
+    /* Görsel düzenleme ve Modal optimizasyonları */
+    .cropper-view-box, .cropper-face {
+        border-radius: 50%;
+        outline: 2px solid #fff;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+    .cropper-container {
+        background-color: #121212 !important;
+    }
+
+    /* Kullanıcı Arayüzü Kart Tasarımı */
+    .card {
+        border-radius: 20px;
+        transition: 0.3s ease;
+        border: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important;
+    }
+
+    .form-control-custom {
+        border-radius: 12px;
+        padding: 12px 15px;
+        border: 2px solid #f1f3f5;
+        background-color: #f8f9fa;
+        transition: 0.3s;
+    }
+
+        .form-control-custom:focus {
+            background-color: #fff;
+            border-color: #0d6efd;
+            box-shadow: none;
+        }
+
+    .input-group-text-custom {
+        background-color: #f1f3f5;
+        border: 2px solid #f1f3f5;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-dark"><i class="bi bi-person-badge text-primary me-2"></i> Profil Bilgileri</h3>
+                    <p class="text-muted small">Hesap detaylarını ve kullanıcı profil görselini bu panel üzerinden güncelleyebilirsiniz.</p>
+                </div>
+
+                @if (TempData["Mesaj"] != null)
+                {
+                    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4">
+                        <i class="bi bi-check-circle-fill me-2"></i> @TempData["Mesaj"]
+                    </div>
+                }
+
+                <form asp-action="Index" method="post" enctype="multipart/form-data" id="profilForm">
+                    <input type="hidden" asp-for="CroppedImageBase64" id="CroppedImageBase64" />
+
+                    @* PROFİL GÖRSELİ YÖNETİMİ *@
+                    <div class="mb-5 text-center">
+                        <div class="position-relative d-inline-block">
+                            <img id="profilPreview" src="/img/profil/@(UserManager.GetUserId(User)).jpg?v=@DateTime.Now.Ticks"
+                                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+                                 class="rounded-circle shadow" width="150" height="150"
+                                 style="object-fit: cover; border: 5px solid #fff;">
+
+                            <label for="ProfilFotorafi" class="btn btn-primary btn-sm position-absolute bottom-0 end-0 rounded-circle shadow-sm" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-camera-fill fs-5"></i>
+                            </label>
+                            <input asp-for="ProfilFotorafi" type="file" class="d-none" accept="image/*" id="ProfilFotorafi" />
+                        </div>
+                    </div>
+
+                    @* KULLANICI KİMLİK BİLGİLERİ *@
+                    <div class="mb-4">
+                        <label asp-for="KullaniciAdi" class="form-label fw-bold small text-muted ms-2">Görüntülenecek Ad Soyad</label>
+                        <div class="input-group">
+                            <span class="input-group-text input-group-text-custom"><i class="bi bi-at text-primary fs-5"></i></span>
+                            <input asp-for="KullaniciAdi" class="form-control form-control-custom rounded-start-0 rounded-end-3" placeholder="Adınız ve Soyadınız" />
+                        </div>
+                        <span asp-validation-for="KullaniciAdi" class="text-danger small ms-2"></span>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-4 shadow-sm mt-2">
+                        <i class="bi bi-save2-fill me-2"></i> Profili Güncelle
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* GÖRSEL DÜZENLEME (CROP) MODALI *@
+<div class="modal fade" id="cropModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-dark text-white border-0">
+                <h5 class="modal-title"><i class="bi bi-crop me-2"></i> Görseli Ölçeklendir</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark text-center">
+                <div style="height: 450px; background: #000;">
+                    <img id="imageToCrop" src="" style="max-width: 100%;">
+                </div>
+            </div>
+            <div class="modal-footer bg-dark border-0">
+                <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold" id="cropBtn">Crop and Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+        let cropper;
+        const imageToCrop = document.getElementById('imageToCrop');
+        const fileInput = document.getElementById('ProfilFotorafi');
+        const cropModalEl = document.getElementById('cropModal');
+        const cropModal = new bootstrap.Modal(cropModalEl);
+
+        fileInput.addEventListener('change', function (e) {
+            if (e.target.files && e.target.files.length > 0) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    imageToCrop.src = event.target.result;
+                    cropModal.show();
+                };
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        cropModalEl.addEventListener('shown.bs.modal', function () {
+            cropper = new Cropper(imageToCrop, {
+                aspectRatio: 1,
+                viewMode: 2,
+                guides: true,
+                center: true,
+                highlight: false,
+                cropBoxMovable: true,
+                cropBoxResizable: true,
+                toggleDragModeOnDblclick: false
+            });
+        });
+
+        cropModalEl.addEventListener('hidden.bs.modal', function () {
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            fileInput.value = "";
+        });
+
+        document.getElementById('cropBtn').addEventListener('click', function () {
+            const canvas = cropper.getCroppedCanvas({ width: 400, height: 400 });
+            document.getElementById('CroppedImageBase64').value = canvas.toDataURL('image/jpeg', 0.9);
+            cropModal.hide();
+            document.getElementById('profilForm').submit();
+        });
+    </script>
+}

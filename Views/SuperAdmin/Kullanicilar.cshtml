@@ -1,0 +1,267 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DepoFly.Models
+@model List<ApplicationUser>
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi - SuperAdmin";
+    // SuperAdmin rolüne sahip kullanıcıları listenin en başına taşımaktayız.
+    var siraliListe = Model.OrderByDescending(u => UserManager.GetRolesAsync(u).Result.Contains("SuperAdmin")).ToList();
+}
+
+<style>
+    /* Renk Tanımlamaları */
+    .color-superadmin {
+        color: #e11d48 !important;
+    }
+
+    .color-admin {
+        color: #3b82f6 !important;
+    }
+
+    .color-user {
+        color: #f59e0b !important;
+    }
+
+    .admin-table-card {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .user-name-display {
+        font-weight: 800;
+        font-size: 1.1rem;
+    }
+
+    .user-mail-sub {
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .role-badge-mini {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+        margin-left: 8px;
+    }
+
+    .bg-superadmin-soft {
+        background-color: rgba(225, 29, 72, 0.1);
+    }
+
+    .bg-admin-soft {
+        background-color: rgba(59, 130, 246, 0.1);
+    }
+
+    .bg-user-soft {
+        background-color: rgba(245, 158, 11, 0.1);
+    }
+
+    .search-panel {
+        background: white;
+        border-radius: 15px;
+        border: 2px solid #eee;
+        transition: all 0.3s ease;
+    }
+
+        .search-panel:focus-within {
+            border-color: #e11d48;
+            box-shadow: 0 5px 15px rgba(225,29,72,0.1);
+        }
+
+    /* SuperAdmin Satırı Özel Tasarımı */
+    .superadmin-row {
+        background-color: #fff5f7 !important;
+        border-bottom: 2px solid #e11d48 !important;
+    }
+</style>
+
+<div class="container mt-5 pt-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1"><i class="bi bi-person-check-fill text-danger me-2"></i>Kullanıcı ve Yetki Yönetimi</h2>
+            <p class="text-muted">Sistem kullanıcılarını filtreleyebilir, yetki seviyelerini düzenleyebilir veya erişim kısıtlaması uygulayabilirsiniz.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-dark rounded-pill fw-bold">
+            <i class="bi bi-arrow-left me-1"></i> Geri Dön
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-5">
+            <div class="search-panel d-flex align-items-center px-3 py-1">
+                <i class="bi bi-search text-muted me-2"></i>
+                <input type="text" id="kullaniciAra" class="form-control border-0 shadow-none py-2" placeholder="Ad veya E-posta adresi ile arama yapınız...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="rolFiltre" class="form-select border-2 shadow-none py-2 rounded-3">
+                <option value="">Tüm Yetki Grupları</option>
+                <option value="Admin">Yönetici (Admin)</option>
+                <option value="Kullanıcı">Standart Kullanıcı</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select id="durumFiltre" class="form-select border-2 shadow-none py-2 rounded-3">
+                <option value="">Tüm Erişim Durumları</option>
+                <option value="Aktif">Aktif Kullanıcılar</option>
+                <option value="Banlı">Kısıtlanmış Kullanıcılar</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="card admin-table-card shadow-lg">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="kullaniciTablosu">
+                <thead class="bg-dark text-white">
+                    <tr>
+                        <th class="ps-4 py-3" style="width: 50px;">#</th>
+                        <th class="py-3">Kullanıcı Tanımı</th>
+                        <th class="py-3">Erişim Durumu</th>
+                        <th class="text-end pe-4 py-3">Yetkilendirme ve Güvenlik</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in siraliListe)
+                    {
+                        var roles = await UserManager.GetRolesAsync(user);
+                        var isLocked = await UserManager.IsLockedOutAsync(user);
+                        bool isSuperAdmin = roles.Contains("SuperAdmin");
+                        bool isAdmin = roles.Contains("Admin");
+
+                        string roleText = isSuperAdmin ? "Süper Admin" : (isAdmin ? "Admin" : "Kullanıcı");
+                        string colorClass = isSuperAdmin ? "color-superadmin" : (isAdmin ? "color-admin" : "color-user");
+                        string bgSoftClass = isSuperAdmin ? "bg-superadmin-soft" : (isAdmin ? "bg-admin-soft" : "bg-user-soft");
+                        string durumText = isLocked ? "Banlı" : "Aktif";
+
+                        string rawName = user.Email?.Split('@')[0] ?? user.UserName;
+                        string displayName = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(rawName.ToLower());
+
+                        <tr class="user-row @(isSuperAdmin ? "superadmin-row" : "")"
+                            data-search="@displayName.ToLower() @user.Email.ToLower()"
+                            data-role="@roleText"
+                            data-status="@durumText">
+
+                            <td class="ps-4 fw-bold text-muted row-counter">@(isSuperAdmin ? "★" : "0")</td>
+
+                            <td>
+                                <div>
+                                    <span class="user-name-display @colorClass">@displayName</span>
+                                    <span class="role-badge-mini @bgSoftClass @colorClass">@roleText</span>
+                                </div>
+                                <div class="mt-1">
+                                    <span class="user-mail-sub"><i class="bi bi-envelope-at me-1"></i>@user.Email</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if (isLocked)
+                                {
+                                    <span class="text-danger fw-bold small"><i class="bi bi-x-octagon-fill me-1"></i>Erişim Kısıtlı</span>
+                                }
+                                else
+                                {
+                                    <span class="text-success fw-bold small"><i class="bi bi-check-circle-fill me-1"></i>Erişim Aktif</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                @if (!isSuperAdmin)
+                                {
+                                    <form asp-action="AdminlikYetkisiVer" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="submit" class="btn btn-sm @(isAdmin ? "btn-outline-danger" : "btn-success") rounded-pill px-3 fw-bold">
+                                            @(isAdmin ? "Yönetici Yetkisini Geri Al" : "Yönetici Yetkisi Tanı")
+                                        </button>
+                                    </form>
+
+                                    <form asp-action="KullaniciBanla" method="post" class="d-inline ms-1">
+                                        <input type="hidden" name="id" value="@user.Id" />
+                                        <button type="button" class="btn btn-sm @(isLocked ? "btn-outline-success" : "btn-dark") rounded-pill px-3 fw-bold"
+                                                onclick="banIslemiOnay(this, @(isLocked ? "true" : "false"))">
+                                            @(isLocked ? "Erişim Engelini Kaldır" : "Sistem Erişimini Engelle")
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">SİSTEM YÖNETİCİSİ</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const inputAra = document.getElementById('kullaniciAra');
+        const rolSec = document.getElementById('rolFiltre');
+        const durumSec = document.getElementById('durumFiltre');
+        const satirlar = document.querySelectorAll('.user-row');
+
+        function numaralandir() {
+            let sayac = 1;
+            document.querySelectorAll('.user-row').forEach(row => {
+                const counterCell = row.querySelector('.row-counter');
+                if (row.style.display !== 'none' && counterCell.innerText !== '★') {
+                    counterCell.innerText = sayac;
+                    sayac++;
+                }
+            });
+        }
+
+        function filtrele() {
+            const aranan = inputAra.value.toLowerCase();
+            const secilenRol = rolSec.value;
+            const secilenDurum = durumSec.value;
+
+            satirlar.forEach(row => {
+                if (row.classList.contains('superadmin-row')) {
+                    row.style.display = "";
+                    return;
+                }
+
+                const searchData = row.getAttribute('data-search');
+                const roleData = row.getAttribute('data-role');
+                const statusData = row.getAttribute('data-status');
+
+                const metinUyuyor = searchData.includes(aranan);
+                const rolUyuyor = secilenRol === "" || roleData === secilenRol;
+                const durumUyuyor = secilenDurum === "" || statusData === secilenDurum;
+
+                row.style.display = (metinUyuyor && rolUyuyor && durumUyuyor) ? "" : "none";
+            });
+            numaralandir();
+        }
+
+        inputAra.addEventListener('input', filtrele);
+        rolSec.addEventListener('change', filtrele);
+        durumSec.addEventListener('change', filtrele);
+
+        document.addEventListener("DOMContentLoaded", numaralandir);
+
+        function banIslemiOnay(btnElement, isLocked) {
+            const titleText = isLocked ? "Erişim Engelini Kaldır" : "Sistem Erişimini Engelle";
+            const confirmText = isLocked ? "Erişim yetkisini yeniden tanımlamak üzeresiniz." : "Seçilen kullanıcının sistem erişimini kısıtlamak üzeresiniz.";
+
+            Swal.fire({
+                title: titleText,
+                text: confirmText,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: isLocked ? '#198754' : '#212529',
+                confirmButtonText: 'Onayla',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) { btnElement.closest('form').submit(); }
+            });
+        }
+    </script>
+}

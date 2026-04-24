@@ -1,0 +1,86 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using DepoFly.Models
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var hasPassword = user != null && await UserManager.HasPasswordAsync(user);
+    bool isSA = User.IsInRole("SuperAdmin");
+}
+
+<ul class="navbar-nav">
+    @if (SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item dropdown">
+            @* Profil görseli yükleme hatalarına karşı yedek görsel mekanizması korunmuştur *@
+            <a class="nav-link dropdown-toggle fw-bold d-flex align-items-center @(isSA ? "text-white" : "text-info")"
+               href="#" id="profilDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+                <img src="/img/profil/@(UserManager.GetUserId(User)).jpg?v=@DateTime.Now.Ticks"
+                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+                     class="rounded-circle me-2 border @(isSA ? "border-danger" : "border-info")"
+                     width="32" height="32" style="object-fit: cover;" alt="PP">
+
+                <span>Hesabım</span>
+            </a>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 rounded-3" aria-labelledby="profilDropdown" style="min-width: 220px;">
+
+                @* --- KİŞİSEL NOTLAR --- *@
+                <li>
+                    <a class="dropdown-item fw-bold py-2" asp-area="" asp-controller="Profil" asp-action="Notlar">
+                        <i class="bi bi-sticky-fill me-2 text-warning"></i> Not Defteri
+                    </a>
+                </li>
+
+                @* --- PROFİL AYARLARI --- *@
+                <li>
+                    <a class="dropdown-item fw-bold py-2" asp-area="" asp-controller="Profil" asp-action="Index">
+                        <i class="bi bi-person-circle me-2 text-primary"></i> Profil Bilgileri
+                    </a>
+                </li>
+
+                @* --- GÜVENLİK AYARLARI --- *@
+                <li>
+                    <a class="dropdown-item fw-bold py-2" asp-area="" asp-controller="Profil" asp-action="@(hasPassword ? "SifreDegistir" : "SifreOlustur")">
+                        @if (hasPassword)
+                        {
+                            <i class="bi bi-shield-lock-fill me-2 text-success"></i>
+                            <span>Şifre Güncelleme</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-plus-circle-fill me-2 text-success"></i>
+                            <span>Şifre Tanımlama</span>
+                        }
+                    </a>
+                </li>
+
+                <li><hr class="dropdown-divider opacity-25"></li>
+
+                @* --- GÜVENLİ ÇIKIŞ --- *@
+                <li>
+                    <form class="form-inline m-0 p-0" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item text-danger fw-bold py-2">
+                            <i class="bi bi-box-arrow-right me-2"></i> Güvenli Çıkış
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        @* KİMLİK DOĞRULAMASI YAPILMAMIŞ KULLANICI SEÇENEKLERİ *@
+        <li class="nav-item">
+            <a class="nav-link text-primary fw-bold px-3" asp-area="Identity" asp-page="/Account/Register">Kayıt Ol</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link btn btn-primary ms-lg-2 px-4 shadow-sm fw-bold rounded-pill"
+               style="color: #ffffff !important;"
+               asp-area="Identity"
+               asp-page="/Account/Login">Giriş Yap</a>
+        </li>
+    }
+</ul>

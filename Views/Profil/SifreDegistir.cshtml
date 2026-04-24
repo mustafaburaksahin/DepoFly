@@ -1,0 +1,113 @@
+﻿@model DepoFly.Models.SifreDegistirViewModel
+
+@{
+    ViewData["Title"] = "Şifremi Değiştir";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-warning text-dark text-center py-3">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-key-fill me-2"></i>Şifre Güncelleme İşlemi</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    @if (TempData["Mesaj"] != null)
+                    {
+                        <div class="alert alert-info border-0 shadow-sm small mb-3">
+                            <i class="bi bi-info-circle-fill me-2"></i> @TempData["Mesaj"]
+                        </div>
+                    }
+
+                    @* Model doğrulama hatalarının görüntülendiği alan *@
+                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                    <form asp-action="SifreDegistir" method="post" id="sifreForm">
+                        @* CSRF güvenliği için Anti-Forgery Token *@
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label asp-for="EskiSifre" class="form-label fw-bold small text-muted">Mevcut Şifre</label>
+                            <input asp-for="EskiSifre" id="EskiSifre" type="password" class="form-control rounded-3" placeholder="Geçerli şifrenizi giriniz..." required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="YeniSifre" class="form-label fw-bold small text-muted">Yeni Şifre</label>
+                            <input asp-for="YeniSifre" id="YeniSifre" type="password" class="form-control rounded-3" placeholder="Yeni şifrenizi belirleyiniz..." required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="YeniSifreTekrar" class="form-label fw-bold small text-muted">Yeni Şifre Onayı</label>
+                            <input asp-for="YeniSifreTekrar" id="YeniSifreTekrar" type="password" class="form-control rounded-3" placeholder="Yeni şifrenizi tekrar giriniz..." required />
+                        </div>
+
+                        @* --- GÜVENLİK DOĞRULAMA ALANI (BAŞLANGIÇTA GİZLİ) --- *@
+                        <div class="mb-3" id="onayKoduAlani" style="display:none;">
+                            <label class="form-label fw-bold text-primary">E-posta Onay Kodu</label>
+                            <input name="girilenOnayKodu" type="text" class="form-control border-primary bg-light fw-bold text-center"
+                                   placeholder="6 Haneli Doğrulama Kodu" maxlength="6" id="onayInput" />
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="button" class="btn btn-warning btn-lg fw-bold shadow-sm rounded-pill" id="kodGonderBtn">
+                                <i class="bi bi-envelope-at me-2"></i>Doğrulama Kodu Gönder
+                            </button>
+
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm rounded-pill" id="sifreGuncelleBtn" style="display:none;">
+                                <i class="bi bi-check2-all me-2"></i>Değişiklikleri Onayla ve Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('kodGonderBtn').addEventListener('click', function () {
+            const eskiSifre = document.getElementById('EskiSifre').value;
+            const yeniSifre = document.getElementById('YeniSifre').value;
+            const yeniSifreTekrar = document.getElementById('YeniSifreTekrar').value;
+
+            if (!eskiSifre || !yeniSifre || !yeniSifreTekrar) {
+                Swal.fire('Eksik Bilgi', 'Lütfen tüm alanları doldurduğunuzdan emin olunuz.', 'warning');
+                return;
+            }
+
+            if (yeniSifre !== yeniSifreTekrar) {
+                Swal.fire('Uyumsuzluk', 'Girdiğiniz yeni şifreler birbiriyle eşleşmemektedir.', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('eskiSifre', eskiSifre);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            // AJAX ile e-posta onay kodu gönderimi
+            fetch('/Profil/OnayKoduGonder', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    Swal.fire('Başarılı', 'Doğrulama kodu e-posta adresinize iletilmiştir.', 'success');
+                    document.getElementById('onayKoduAlani').style.display = 'block';
+                    document.getElementById('kodGonderBtn').style.display = 'none';
+                    document.getElementById('sifreGuncelleBtn').style.display = 'block';
+                    document.getElementById('onayInput').required = true;
+                } else if (response.status === 400) {
+                    Swal.fire('Hata', 'Mevcut şifreniz hatalıdır. Lütfen kontrol ederek tekrar deneyiniz.', 'error');
+                } else {
+                    Swal.fire('Hata', 'Sunucu kaynaklı bir sorun nedeniyle e-posta gönderilemedi.', 'error');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Hata', 'İşlem sırasında teknik bir aksaklık oluştu.', 'error');
+            });
+        });
+    </script>
+}

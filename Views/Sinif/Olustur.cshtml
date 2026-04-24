@@ -1,0 +1,45 @@
+﻿@model DepoFly.Models.Sinif
+
+@{
+    ViewData["Title"] = "Yeni Sınıf Oluştur";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Yeni Sınıf / Birim Tanımlama</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Olustur" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="SinifAdi" class="control-label fw-bold">Sınıf / Birim Adı</label>
+                            <input asp-for="SinifAdi" class="form-control" placeholder="Örn: Yazılım Geliştirme Departmanı" />
+                            <span asp-validation-for="SinifAdi" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label asp-for="Aciklama" class="control-label fw-bold">Birim Açıklaması</label>
+                            <textarea asp-for="Aciklama" class="form-control" rows="3" placeholder="İlgili birimin kullanım amacını belirtiniz..."></textarea>
+                            <span asp-validation-for="Aciklama" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group text-end">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-success">Create and Generate Code</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,51 @@
+﻿@model DepoFly.Models.SifreDegistirViewModel
+
+@{
+    ViewData["Title"] = "Kimlik Doğrulama";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4 p-4 text-center">
+                <i class="bi bi-shield-lock-fill text-primary" style="font-size: 3rem;"></i>
+                <h3 class="fw-bold mt-2">Güvenlik Doğrulaması</h3>
+                <p class="text-muted small"><strong>@ViewBag.Email</strong> adresine gönderilen 6 haneli doğrulama kodunu giriniz.</p>
+
+                @if (ViewBag.Hata != null)
+                {
+                    <div class="alert alert-danger border-0 small py-2 fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewBag.Hata
+                    </div>
+                }
+
+                <form asp-action="SifreOnay" method="post">
+                    @* Kullanıcı kimlik bilgisi Controller işlemleri için gizli alan olarak taşınmaktadır *@
+                    <input type="hidden" name="email" value="@ViewBag.Email" />
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary small">Doğrulama Kodu</label>
+                        <input type="text" name="girilenKod"
+                               class="form-control form-control-lg text-center fw-bold shadow-sm"
+                               placeholder="000000"
+                               maxlength="6"
+                               style="letter-spacing: 8px; font-size: 1.8rem; border-color: #dee2e6;"
+                               required
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                               autocomplete="off" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow-sm py-3">
+                        Doğrula ve Devam Et
+                    </button>
+
+                    <div class="mt-3">
+                        <a asp-action="SifreDegistir" class="text-decoration-none small fw-bold text-muted">
+                            <i class="bi bi-arrow-left me-1"></i> Yeni Kod Gönder
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

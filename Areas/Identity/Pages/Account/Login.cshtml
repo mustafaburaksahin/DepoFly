@@ -1,0 +1,110 @@
+﻿@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Kullanıcı Girişi";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        @* Kutu ikonu kurumsal mavi renkte ve belirgin boyutta eklenmiştir *@
+                        <h1 class="text-primary fw-bold"><i class="bi bi-box-seam-fill me-2"></i>DepoFly</h1>
+                        <p class="text-muted">Lütfen kimlik bilgilerinizle giriş yapınız</p>
+                    </div>
+
+                    @* 1. STANDART KİMLİK DOĞRULAMA FORMU *@
+                    <form id="account" method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control rounded-3" placeholder="eposta@kurum.com" autocomplete="username" />
+                            <label asp-for="Input.Email">E-posta Adresi</label>
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Password" class="form-control rounded-3" placeholder="Şifre" autocomplete="current-password" />
+                            <label asp-for="Input.Password">Şifre</label>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="text-center mb-3">
+                            <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none small fw-bold">Şifremi Unuttum</a>
+                        </div>
+
+                        <button type="submit" class="w-100 btn btn-lg btn-primary rounded-3 shadow-sm py-3 fw-bold mb-3">Oturum Aç</button>
+                    </form>
+
+                    @* 2. HARİCİ SERVİS ENTEGRASYONLARI *@
+                    <div class="text-center my-4">
+                        <div class="d-flex align-items-center my-3">
+                            <hr class="flex-grow-1 text-muted opacity-25">
+                            <span class="mx-3 text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">veya</span>
+                            <hr class="flex-grow-1 text-muted opacity-25">
+                        </div>
+
+                        @{
+                            if ((Model.ExternalLogins?.Count ?? 0) == 0)
+                            {
+                                <div class="alert alert-warning py-2 rounded-3 border-0">
+                                    <small>Harici giriş servisleri şu an aktif değildir.</small>
+                                </div>
+                            }
+                            else
+                            {
+                                <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
+                                    <div class="d-grid gap-2">
+                                        @foreach (var provider in Model.ExternalLogins!)
+                                        {
+                                            if (provider.Name == "Google")
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name"
+                                                        class="btn btn-light py-2 d-flex align-items-center justify-content-center border shadow-sm rounded-3 fw-bold transition-all hover-shadow"
+                                                        style="border-color: #ddd !important;">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 48 48" class="me-3">
+                                                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
+                                                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
+                                                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
+                                                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
+                                                    </svg>
+                                                    <span class="text-dark">Google ile Giriş Yap</span>
+                                                </button>
+                                            }
+                                            else if (provider.Name == "Facebook")
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name"
+                                                        class="btn btn-primary py-2 d-flex align-items-center justify-content-center border-0 shadow-sm rounded-3 fw-bold transition-all hover-shadow"
+                                                        style="background-color: #1877F2;">
+                                                    <i class="bi bi-facebook fs-5 me-3"></i>
+                                                    <span>Facebook ile Giriş Yap</span>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" name="provider" value="@provider.Name" class="btn btn-dark py-2 rounded-3 mb-2">
+                                                    @provider.DisplayName Hesabı ile Devam Et
+                                                </button>
+                                            }
+                                        }
+                                    </div>
+                                </form>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-3">
+                <p class="text-muted small">Henüz hesabınız yok mu? <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-primary fw-bold text-decoration-none">Yeni Kayıt Oluştur</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

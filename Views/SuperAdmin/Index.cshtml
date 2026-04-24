@@ -1,0 +1,159 @@
+﻿@{
+    ViewData["Title"] = "Büyük Patron Paneli - DepoFly";
+}
+
+<style>
+    /* SuperAdmin'e özel premium kart efektleri */
+    .sa-card {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: none;
+        border-radius: 24px;
+        background: #ffffff;
+    }
+
+        .sa-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08) !important;
+        }
+
+    .sa-icon-box {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+        transition: 0.3s;
+    }
+
+    .sa-card:hover .sa-icon-box {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Başlık Vurgusu */
+    .fw-black {
+        font-weight: 900;
+    }
+
+    .bg-dark-panel {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        color: white;
+    }
+
+    .info-bar {
+        background: #ffffff;
+        border: 1px solid #edf2f7;
+        border-radius: 20px;
+    }
+</style>
+
+<div class="container mt-5 pt-3">
+    @* --- ÜST BAŞLIK ALANI --- *@
+    <div class="row mb-5">
+        <div class="col-12 text-center text-lg-start">
+            <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill fw-bold mb-2 small text-uppercase tracking-wider">
+                <i class="bi bi-shield-lock-fill me-1"></i> Sistem Yönetim Merkezi
+            </span>
+            <h1 class="display-5 fw-black text-dark" style="letter-spacing: -1.5px;">SuperAdmin Paneli</h1>
+            <p class="lead text-muted">Sistemdeki tüm sınıfları, kullanıcıları ve genel sağlığı buradan koordine et.</p>
+        </div>
+    </div>
+
+    @if (TempData["Basari"] != null)
+    {
+        <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center">
+            <i class="bi bi-check-circle-fill me-2"></i> @TempData["Basari"]
+        </div>
+    }
+
+    @* --- İSTATİSTİK VE YÖNETİM KARTLARI --- *@
+    <div class="row g-4">
+        @* Kullanıcı Kontrolü *@
+        <div class="col-md-4">
+            <div class="card sa-card shadow-sm h-100 p-4">
+                <div class="card-body p-0">
+                    <div class="sa-icon-box bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h4 class="fw-bold">Kullanıcı Kontrolü</h4>
+                    <p class="text-muted small">Sistemdeki <strong>@ViewBag.ToplamKullanici</strong> kullanıcıyı yönet, admin yetkisi ata veya banla.</p>
+                    <hr class="my-4 opacity-25">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small d-block">Toplam Kayıt</span>
+                            <span class="h2 fw-black mb-0">@ViewBag.ToplamKullanici</span>
+                        </div>
+                        <a asp-action="Kullanicilar" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm">
+                            Yönet <i class="bi bi-arrow-right-short ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Sınıf Denetimi *@
+        <div class="col-md-4">
+            <div class="card sa-card shadow-sm h-100 p-4">
+                <div class="card-body p-0">
+                    <div class="sa-icon-box bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-building-fill"></i>
+                    </div>
+                    <h4 class="fw-bold">Sınıf Denetimi</h4>
+                    <p class="text-muted small"><strong>@ViewBag.ToplamSinif</strong> farklı organizasyonu denetle, kural dışı olanları sistemden sil.</p>
+                    <hr class="my-4 opacity-25">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small d-block">Toplam Sınıf</span>
+                            <span class="h2 fw-black mb-0">@ViewBag.ToplamSinif</span>
+                        </div>
+                        <a asp-action="Siniflar" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm">
+                            İncele <i class="bi bi-search ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Aktiflik Durumu (Sistem Özeti) *@
+        <div class="col-md-4">
+            <div class="card sa-card bg-dark-panel shadow-sm h-100 p-4">
+                <div class="card-body p-0">
+                    <div class="sa-icon-box bg-white bg-opacity-10 text-white border border-white border-opacity-10">
+                        <i class="bi bi-cpu-fill"></i>
+                    </div>
+                    <h4 class="fw-bold text-white">Aktiflik Durumu</h4>
+                    <p class="text-white-50 small">Şu an sistemde aktif ve banlanmamış olarak kullanılan toplam depo/sınıf sayısı.</p>
+                    <hr class="my-4 opacity-25 border-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-white-50 small d-block">Aktif Sınıf</span>
+                            <span class="h2 fw-black mb-0 text-white">@ViewBag.AktifSinif</span>
+                        </div>
+                        <span class="badge bg-white text-dark rounded-pill px-3 py-2 fw-bold" style="font-size: 0.7rem;">
+                            <i class="bi bi-broadcast text-success me-1"></i> SİSTEM ONLINE
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* --- ALT UYARI BARI --- *@
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <div class="p-4 info-bar shadow-sm d-flex align-items-center gap-4">
+                <div class="sa-icon-box bg-danger bg-opacity-10 text-danger mb-0 flex-shrink-0" style="width: 50px; height: 50px;">
+                    <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark">Kritik İşlem Hatırlatması</h6>
+                    <p class="mb-0 text-muted small">
+                        <strong>Dikkat:</strong> Süper Admin olarak yaptığın tüm işlemler (silme/banlama) veritabanı düzeyinde kalıcıdır. Bu işlemlerin geri dönüşü manuel müdahale gerektirir.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
