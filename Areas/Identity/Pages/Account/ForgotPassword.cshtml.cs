@@ -19,7 +19,7 @@ namespace DepoFly.Areas.Identity.Pages.Account
 {
     public class ForgotPasswordModel : PageModel
     {
-        // AGA: UserManager tipini ApplicationUser yaparak dükkanın yeni sahibini tanıttık
+    
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEmailSender _emailSender;
 
@@ -43,7 +43,7 @@ namespace DepoFly.Areas.Identity.Pages.Account
         {
             if (ModelState.IsValid)
             {
-                // AGA: Burayı da ApplicationUser tipine göre güncelledik
+      
                 var user = await _userManager.FindByEmailAsync(Input.Email);
 
                 if (user == null)

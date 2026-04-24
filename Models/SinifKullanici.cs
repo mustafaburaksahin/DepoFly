@@ -2,12 +2,11 @@
 
 namespace DepoFly.Models
 {
-    // Sınıf içindeki lokal yetkileri tutacağımız Enum
     public enum SinifRolleri
     {
-        Kurucu = 1,     // Sınıfı açan Admin
-        GeciciAdmin = 2,// Admin'in yetki verdiği kişi
-        Kullanici = 3   // Standart üye
+        Kurucu = 1,     
+        GeciciAdmin = 2,
+        Kullanici = 3   
     }
 
     public class SinifKullanici

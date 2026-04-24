@@ -19,8 +19,6 @@ namespace DepoFly.Models
         public DateTime Tarih { get; set; } = DateTime.Now;
 
         [ForeignKey("UserId")]
-        //IdentityUser'ı sildik, yerine ApplicationUser koyduk. 
-        // Hata buradaydı, artık dükkanın tek patronu ApplicationUser.
         public virtual ApplicationUser? User { get; set; }
 
         public int UrunId { get; internal set; }

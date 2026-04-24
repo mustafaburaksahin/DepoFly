@@ -23,7 +23,6 @@ namespace DepoFly.Models
         public string? UserId { get; set; }
 
         [ValidateNever]
-        //IdentityUser'ı sildik, yerine ApplicationUser koyduk.
         public virtual ApplicationUser? User { get; set; }
 
         [Required(ErrorMessage = "Lütfen bir ürün türü seçin.")]

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using DepoFly.Services;
 using DepoFly.Data;
-using DepoFly.Models; // ApplicationUser modelini görmesi için ekledik
+using DepoFly.Models;
 using System.Net;
 
 internal class Program
@@ -97,11 +97,10 @@ internal class Program
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
 
-        // --- SUPERADMIN VE ROL TANIMLAMA (ApplicationUser'a GÜNCELLENDİ) ---
         using (var scope = app.Services.CreateScope())
         {
             var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>(); // Burası güncellendi
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
             // Global rolleri oluştur
             string[] roller = ["SuperAdmin", "Admin", "Kullanici"];
@@ -112,8 +111,6 @@ internal class Program
                     await roleManager.CreateAsync(new IdentityRole(rol));
                 }
             }
-
-            // DİKKAT: Buraya kendi mailini yaz.
             var superAdminMail = "mustafabu7780@gmail.com";
 
             var adminUser = await userManager.FindByEmailAsync(superAdminMail);

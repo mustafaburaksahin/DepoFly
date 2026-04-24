@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using System.ComponentModel.DataAnnotations;
-using System.Collections.Generic; // ICollection için şart
+using System.Collections.Generic; 
 
 namespace DepoFly.Models
 {
@@ -11,12 +11,8 @@ namespace DepoFly.Models
 
         [Required(ErrorMessage = "Kategori adı boş bırakılamaz.")]
         public string? Ad { get; set; }
-
-        // Kategoriyi hangi kullanıcının eklediğini bilmek için
         public string? UserId { get; set; }
 
-        //IdentityUser'ı uçurduk, yerine ApplicationUser koyduk.
-        // Hata tam olarak buradaydı!
         [ValidateNever]
         public virtual ApplicationUser? User { get; set; }
 

@@ -47,12 +47,12 @@ namespace DepoFly.Controllers
 
             if (AktifSinifId.HasValue)
             {
-                // AGA: Sınıf içindeysek sadece o sınıfa ait ürünler
+                
                 urunler = urunler.Where(u => u.SinifId == AktifSinifId.Value);
             }
             else
             {
-                // AGA: Bireysel depodaysak sadece sınıfa bağlı OLMAYAN şahsi ürünler
+                
                 urunler = urunler.Where(u => u.UserId == userId && u.SinifId == null);
             }
 
